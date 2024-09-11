@@ -1,46 +1,67 @@
-// src/services/userService.js
+import { db } from "../config/firebaseConfig.js"; // Import the db object
 
-import { getFirestoreDb } from "../db/firebase.js";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+// Function to create or update user data
+export async function createUser(userData) {
+    const userRef = db.ref(`users/${userData.id}`);
+    await userRef.set(userData);
+}
 
-const getUserDataById = async (userId) => {
-    const firestoreDb = getFirestoreDb();
-    if (!firestoreDb) {
-        console.error("Firestore is not initialized. Please initialize Firebase first.");
-        return null;
-    }
-
+// Function to get user data by ID
+export async function getUserDataById(userId) {
     try {
-        const userDoc = doc(firestoreDb, "users", userId);
-        const docSnap = await getDoc(userDoc);
+        const snapshot = await db.ref(`user/${userId}`).once("value");
+        const userData = snapshot.val();
 
-        if (docSnap.exists()) {
-            return docSnap.data();
+        // Check if user data exists and is not an empty object
+        if (userData) {
+            // The data is nested under the userId key
+            return userData;
         } else {
-            console.log("No such document!");
             return null;
         }
     } catch (error) {
-        console.error("Error retrieving user data from Firebase:", error);
+        console.error("Error retrieving user data:", error);
         throw new Error("Failed to retrieve user data");
     }
-};
+}
 
-const createUser = async (userData) => {
-    const firestoreDb = getFirestoreDb();
-    if (!firestoreDb) {
-        console.error("Firestore is not initialized. Please initialize Firebase first.");
-        return;
-    }
-
+export async function getUserMessagesById(userId) {
     try {
-        const userRef = doc(firestoreDb, "users", userData.id);
-        await setDoc(userRef, userData, { merge: true });
-        console.log("User data saved successfully.");
-    } catch (error) {
-        console.error("Error saving user data to Firebase:", error);
-        throw new Error("Failed to save user data");
-    }
-};
+        const snapshot = await db.ref(`user/${userId}/messages`).once("value");
+        const messages = snapshot.val();
 
-export { getUserDataById, createUser };
+        // Check if messages exist and is not an empty object
+        if (messages) {
+            return messages;
+        } else {
+            return null;
+        }
+    } catch (error) {
+        console.error("Error retrieving user messages:", error);
+        throw new Error("Failed to retrieve user messages");
+    }
+}
+
+// Function to calculate total debits and credits
+export const calculateTotalDebitsAndCredits = (messages) => {
+    let totalDebit = 0;
+    let totalCredit = 0;
+
+    if (messages) {
+        for (const messageId in messages) {
+            // console.log("type",messages[messageId].type);
+            // console.log("amount",messages[messageId].amount);
+            const message = messages[messageId];
+            if (message.type === "Debited") {
+                totalDebit += parseFloat(message.amount);
+            } else if (message.type === "Credited") {
+                totalCredit += parseFloat(message.amount);
+            }
+        }
+    }
+
+    return {
+        totalDebit,
+        totalCredit,
+    };
+};

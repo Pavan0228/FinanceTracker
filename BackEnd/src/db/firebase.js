@@ -1,37 +1,20 @@
-// src/config/firebaseConfig.js
+import admin from "firebase-admin";
+import { readFileSync } from "fs";
+import path from "path";
 
-import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
-import dotenv from "dotenv";
+const serviceAccountPath = path.resolve("src/config/firebaseConfig.json");
+const serviceAccount = JSON.parse(readFileSync(serviceAccountPath, "utf8"));
 
-// Load environment variables from .env file
-dotenv.config();
+let initialized = false;
 
-const firebaseConfig = {
-    apiKey: process.env.FIREBASE_API_KEY,
-    authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.FIREBASE_PROJECT_ID,
-    storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.FIREBASE_APP_ID,
-    measurementId: process.env.FIREBASE_MEASUREMENT_ID,
-};
-
-let app;
-let firestoreDb;
-
-const initializeFirebaseApp = () => {
-    try {
-        app = initializeApp(firebaseConfig);
-        firestoreDb = getFirestore(app); // Ensure Firestore is initialized with the correct app instance
-        console.log("Firebase initialized successfully");
-        return app;
-    } catch (error) {
-        console.error("Firebase initialization error:", error);
+export function initializeFirebaseApp() {
+    if (!initialized) {
+        admin.initializeApp({
+            credential: admin.credential.cert(serviceAccount),
+            databaseURL: "https://finandetails-default-rtdb.firebaseio.com", // Replace with your database URL
+        });
+        initialized = true;
     }
-};
+}
 
-const getFirebaseApp = () => app;
-const getFirestoreDb = () => firestoreDb;
-
-export { initializeFirebaseApp, getFirebaseApp, getFirestoreDb };
+export const db = admin.database();
