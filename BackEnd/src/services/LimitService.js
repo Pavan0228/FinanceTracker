@@ -1,10 +1,14 @@
-import { db } from "../config/firebaseConfig.js"; // Import the db object
+import { db } from "../config/firebaseConfig.js"; // Import the db object 
 
-export const setMonthlyLimit = async (userId, limit) => {
+export const setMonthlyLimit = async (userId, limit, month, year) => {
     try {
-        const userRef = db.ref(`user/${userId}/monthlyLimit`);
-        await userRef.set(limit); // Save the limit under the user's ID
-        return { userId, limit };
+        // Save the limit under user -> monthlyLimit -> year -> month
+        const userRef = db.ref(`user/${userId}/monthlyLimit/${year}/${month}`);
+        await userRef.set({
+            limit
+        });
+
+        return { userId, limit, month, year };
     } catch (error) {
         console.error("Error setting monthly limit:", error);
         throw new Error("Failed to set monthly limit");

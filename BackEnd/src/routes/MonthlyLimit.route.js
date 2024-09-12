@@ -1,29 +1,24 @@
 import express from "express";
-import { setMonthlyLimit } from "../services/LimitService.js"; // Assume you have a service to handle the logic
+import { setMonthlyLimit } from "../services/limitService.js";
 
 const router = express.Router();
 
-
-// Define a POST route for setting the monthly limit
-router.post("/user/:id", async (req, res) => {
+// POST request to set monthly limit with specified month and year
+router.post("/user/:id/monthly-limit", async (req, res) => {
     const userId = req.params.id;
-    const { limit } = req.body; // Extract the monthly limit from the request body
+    const { limit, month, year } = req.body;
 
     try {
-        if (!limit || isNaN(limit)) {
-            return res.status(400).send({ message: "Invalid limit" });
-        }
-        const result = await setMonthlyLimit(userId, limit); 
-
-        res.status(201).send({
+        // Call the service function to set the monthly limit
+        const result = await setMonthlyLimit(userId, limit, month, year);
+        res.status(200).send({
             message: "Monthly limit set successfully",
-            data: result, 
+            data: result,
         });
     } catch (error) {
-        console.error("Error in /user/:id/monthly-limit POST route:", error);
+        console.error("Error in setting monthly limit:", error);
         res.status(500).send({ error: "Failed to set monthly limit" });
     }
 });
-
 
 export default router;
