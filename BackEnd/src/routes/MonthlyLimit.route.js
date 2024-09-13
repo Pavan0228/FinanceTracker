@@ -1,5 +1,5 @@
 import express from "express";
-import { setMonthlyLimit } from "../services/limitService.js";
+import { setMonthlyLimit } from "../services/LimitService.js";
 
 const router = express.Router();
 

@@ -6,7 +6,11 @@ import {
     calculateTotalDebitsAndCredits,
 } from "../services/userService.js";
 
+import { login } from "../controllers/auth.controller.js";
+
 const router = express.Router();
+
+router.route("/login").post(login);
 
 // Route to get user data by ID
 router.get("/:id", async (req, res) => {
@@ -18,7 +22,7 @@ router.get("/:id", async (req, res) => {
                 message: "User data retrieved successfully",
                 email: userData.email,
                 name: userData.name,
-                password:userData.password
+                password: userData.password,
             });
         } else {
             res.status(404).send({ message: "User not found" });
@@ -30,51 +34,5 @@ router.get("/:id", async (req, res) => {
 });
 
 // Route to get user messages by ID
-router.get("/:id/messages", async (req, res) => {
-    const userId = req.params.id;
-    try {
-        const messages = await getUserMessagesById(userId);
-        if (messages) {
-            res.status(200).send({
-                message: "User messages retrieved successfully",
-                data: messages,
-            });
-        } else {
-            res.status(404).send({
-                message: "No messages found for this user",
-            });
-        }
-    } catch (error) {
-        console.error("Error in /user/:id/messages route:", error);
-        res.status(500).send({ error: "Failed to retrieve user messages" });
-    }
-});
-
-// Route to get total debit and credit amounts
-router.get("/:id/total", async (req, res) => {
-    const userId = req.params.id;
-    try {
-        const messages = await getUserMessagesById(userId);
-        if (messages) {
-            const totals = calculateTotalDebitsAndCredits(messages);
-            console.log(totals)
-            res.status(200).send({
-                message:
-                    "Total debit and credit amounts retrieved successfully",
-                totalDebit: totals.totalDebit,
-                totalCredit: totals.totalCredit,
-            });
-        } else {
-            res.status(404).send({
-                message: "No messages found for this user",
-            });
-        }
-    } catch (error) {
-        console.error("Error in /user/:id/total route:", error);
-        res.status(500).send({
-            error: "Failed to calculate total debit and credit amounts",
-        });
-    }
-});
 
 export default router;
