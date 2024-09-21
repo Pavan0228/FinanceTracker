@@ -7,10 +7,8 @@ const app = express();
 // Middleware to parse JSON bodies
 app.use(express.json());
 
-// Use the user routes
-app.use("/api/fin", expenseRouter);
+app.use("/api/expense", expenseRouter);
 app.use("/api/auth", userRoutes);
-// Use the monthly limit routes
-app.use("/api/monthly-limit", monthlyLimitRoutes);
+app.use("/api/monthly", monthlyLimitRoutes);
 
 export default app;
