@@ -4,6 +4,7 @@ import {
     getUserDataById,
     getUserMessagesById,
     calculateTotalDebitsAndCredits,
+    monthlyDebitCredit,
 } from "../services/userService.js";
 
 const router = express.Router();
@@ -58,6 +59,37 @@ router.get("/:id/total", async (req, res) => {
         });
     }
 })
+
+router.get("/:id/messages/:month", async (req, res) => {
+    try {
+        const userId = req.params.id;        // Extract userId from route params
+        const monthNumber = parseInt(req.params.month);  // Extract month from route params
+
+        // Validate monthNumber
+        if (isNaN(monthNumber) || monthNumber < 1 || monthNumber > 12) {
+            return res.status(400).json({
+                error: "Invalid month number. Please provide a month between 1 and 12.",
+            });
+        }
+
+        // Fetch the user's messages by userId
+        const messages = await getUserMessagesById(userId);
+
+        // Calculate total debits and credits for the given month
+        const monthlyTotals = monthlyDebitCredit(messages, monthNumber);
+
+        res.status(200).json({
+            message: "Monthly debits and credits calculated successfully",
+            data: monthlyTotals,
+        });
+    } catch (error) {
+        console.error("Error calculating monthly totals:", error);
+        res.status(500).json({
+            error: "Failed to calculate monthly debits and credits",
+        });
+    }
+});
+
 
 
 export default router;

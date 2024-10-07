@@ -21,8 +21,6 @@ function decrypt(encryptedText) {
     return decrypted;
 }
 
-
-
 // Function to create or update user data
 export async function createUser(userData) {
     const userRef = db.ref(`users/${userData.id}`);
@@ -56,12 +54,12 @@ export async function getUserMessagesById(userId) {
         // Check if messages exist and convert to an array
         if (messages) {
             const messageArray = Object.values(messages); // Convert object to array
-            console.log(messageArray)
+            console.log(messageArray);
             // Decrypt the messages
             const decryptedMessages = messageArray.map((msg) => ({
                 amount: decrypt(msg.amount),
                 date: decrypt(msg.date),
-                sender: msg.sender, 
+                sender: msg.sender,
                 type: decrypt(msg.Type),
             }));
 
@@ -82,12 +80,47 @@ export const calculateTotalDebitsAndCredits = (messages) => {
 
     if (messages) {
         for (const messageId in messages) {
-
             const message = messages[messageId];
             if (message.type === "Debited") {
                 totalDebit += parseFloat(message.amount);
             } else if (message.type === "Credited") {
                 totalCredit += parseFloat(message.amount);
+            }
+        }
+    }
+
+    return {
+        totalDebit,
+        totalCredit,
+    };
+};
+
+export const monthlyDebitCredit = (messages, monthNumber) => {
+    let totalDebit = 0;
+    let totalCredit = 0;
+
+    // Ensure monthNumber is valid (1-12)
+    if (monthNumber < 1 || monthNumber > 12) {
+        throw new Error("Invalid month number. It should be between 1 and 12.");
+    }
+
+    if (messages) {
+        for (const messageId in messages) {
+            const message = messages[messageId];
+
+            // Extract the date parts manually (DD/MM/YYYY format)
+            const dateParts = message.date.split(" ")[0].split("/"); // "26/06/2024" => ["26", "06", "2024"]
+            const messageDay = parseInt(dateParts[0], 10);
+            const messageMonth = parseInt(dateParts[1], 10); // Month in number
+            const messageYear = parseInt(dateParts[2], 10);
+
+            // Check if the message's month matches the provided monthNumber
+            if (messageMonth === monthNumber) {
+                if (message.type === "Debited") {
+                    totalDebit += parseFloat(message.amount);
+                } else if (message.type === "Credited") {
+                    totalCredit += parseFloat(message.amount);
+                }
             }
         }
     }
