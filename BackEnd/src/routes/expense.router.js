@@ -1,3 +1,4 @@
+// routes/user.router.js
 import express from "express";
 import {
     getUserDataById,
@@ -7,14 +8,16 @@ import {
 
 const router = express.Router();
 
+
 router.get("/:id/messages", async (req, res) => {
-    const userId = req.params.id;
     try {
-        const messages = await getUserMessagesById(userId);
-        if (messages) {
+        const userId = req.params.id; 
+        const decryptedMessages = await getUserMessagesById(userId); // Messages are already decrypted
+
+        if (decryptedMessages.length > 0) {
             res.status(200).send({
                 message: "User messages retrieved successfully",
-                data: messages,
+                data: decryptedMessages, // Send the decrypted messages
             });
         } else {
             res.status(404).send({
@@ -27,12 +30,14 @@ router.get("/:id/messages", async (req, res) => {
     }
 });
 
+
 // Route to get total debit and credit amounts
 router.get("/:id/total", async (req, res) => {
     const userId = req.params.id;
     try {
         const messages = await getUserMessagesById(userId);
         if (messages) {
+            console.log(messages)
             const totals = calculateTotalDebitsAndCredits(messages);
             console.log(totals);
             res.status(200).send({
@@ -52,6 +57,7 @@ router.get("/:id/total", async (req, res) => {
             error: "Failed to calculate total debit and credit amounts",
         });
     }
-});
+})
+
 
 export default router;
