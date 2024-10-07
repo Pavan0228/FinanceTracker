@@ -1,21 +1,30 @@
 /* eslint-disable no-unused-vars */
+import axios from "axios";
 import React, { useState } from "react";
 
 const Login = () => {
     const [formData, setFormData] = useState({
-        username: "",
+        email: "",
         password: "",
     });
 
-    const handleChange = (e) => {
+    const handleChange =  (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         // Perform login logic here
         console.log(formData);
+
+        try {
+          const response = await axios.post('http://localhost:3000/api/auth/login', formData);
+          console.log(response.data);
+        } catch (error) {
+          console.error(error);
+        }
+
     };
 
     return (
@@ -27,15 +36,15 @@ const Login = () => {
                 <div className="mb-4">
                     <label
                         className="block text-zinc-400 text-sm font-semibold mb-2"
-                        htmlFor="username"
+                        htmlFor="email"
                     >
                         Username
                     </label>
                     <input
                         type="text"
-                        id="username"
-                        name="username"
-                        value={formData.username}
+                        id="email"
+                        name="email"
+                        value={formData.email}
                         onChange={handleChange}
                         className="w-full px-4 py-2 bg-zinc-700 text-zinc-100 border border-zinc-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required
@@ -61,6 +70,7 @@ const Login = () => {
                 <button
                     type="submit"
                     className="w-full py-2 bg-blue-600 text-white font-semibold rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onClick={handleSubmit}
                 >
                     Login
                 </button>
