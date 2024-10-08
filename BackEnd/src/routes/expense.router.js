@@ -5,6 +5,8 @@ import {
     getUserMessagesById,
     calculateTotalDebitsAndCredits,
     monthlyDebitCredit,
+    getUserMonthlyMessagesById,
+    getUserYearlyMassagesById,
 } from "../services/userService.js";
 
 const router = express.Router();
@@ -13,12 +15,12 @@ const router = express.Router();
 router.get("/:id/messages", async (req, res) => {
     try {
         const userId = req.params.id; 
-        const decryptedMessages = await getUserMessagesById(userId); // Messages are already decrypted
+        const decryptedMessages = await getUserMessagesById(userId);
 
         if (decryptedMessages.length > 0) {
             res.status(200).send({
                 message: "User messages retrieved successfully",
-                data: decryptedMessages, // Send the decrypted messages
+                data: decryptedMessages, 
             });
         } else {
             res.status(404).send({
@@ -38,9 +40,7 @@ router.get("/:id/total", async (req, res) => {
     try {
         const messages = await getUserMessagesById(userId);
         if (messages) {
-            console.log(messages)
             const totals = calculateTotalDebitsAndCredits(messages);
-            console.log(totals);
             res.status(200).send({
                 message:
                     "Total debit and credit amounts retrieved successfully",
@@ -60,20 +60,27 @@ router.get("/:id/total", async (req, res) => {
     }
 })
 
-router.get("/:id/messages/:month", async (req, res) => {
+router.get("/:id/monthlyDebitCredit/:month/:year", async (req, res) => {
     try {
-        const userId = req.params.id;        // Extract userId from route params
+        const userId = req.params.id;  // Extract userId from route params
         const monthNumber = parseInt(req.params.month);  // Extract month from route params
+        const year = parseInt(req.params.year); // Extract year from route params
 
-        // Validate monthNumber
+        // Validate monthNumber and year
         if (isNaN(monthNumber) || monthNumber < 1 || monthNumber > 12) {
             return res.status(400).json({
                 error: "Invalid month number. Please provide a month between 1 and 12.",
             });
         }
+        if (isNaN(year) || year < 2000 || year > new Date().getFullYear()) {
+            return res.status(400).json({
+                error: "Invalid year. Please provide a valid year.",
+            });
+        }
 
-        // Fetch the user's messages by userId
-        const messages = await getUserMessagesById(userId);
+        const monthYear = `${monthNumber.toString().padStart(2, "0")}${year}`;
+
+        const messages = await getUserMonthlyMessagesById(userId, monthYear);
 
         // Calculate total debits and credits for the given month
         const monthlyTotals = monthlyDebitCredit(messages, monthNumber);
@@ -90,6 +97,41 @@ router.get("/:id/messages/:month", async (req, res) => {
     }
 });
 
+router.get('/:id/monthly/messages/:month/:year', async (req, res) => {
+    const { id, month , year } = req.params;
+
+    const monthYear = `${month.toString().padStart(2, "0")}${year}`;
+
+    try {
+        const monthlyMessages = await getUserMonthlyMessagesById(id, monthYear);  
+        res.status(200).json(monthlyMessages);  
+    } catch (error) {
+        console.error("Error retrieving monthly messages:", error);
+        res.status(500).json({ message: "Failed to retrieve monthly messages" });
+    }
+});
+
+
+router.get("/:id/monthly/messages/:year", async (req, res) => {
+    try {
+        const { id, year } = req.params;
+        const decryptedMessages = await getUserYearlyMassagesById(id , year);
+
+        if (decryptedMessages.length > 0) {
+            res.status(200).send({
+                message: "User messages retrieved successfully",
+                data: decryptedMessages, 
+            });
+        } else {
+            res.status(404).send({
+                message: "No messages found for this user",
+            });
+        }
+    } catch (error) {
+        console.error("Error in /user/:id/messages route:", error);
+        res.status(500).send({ error: "Failed to retrieve user messages" });
+    }
+});
 
 
 export default router;

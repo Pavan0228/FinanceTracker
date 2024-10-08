@@ -54,7 +54,6 @@ export async function getUserMessagesById(userId) {
         // Check if messages exist and convert to an array
         if (messages) {
             const messageArray = Object.values(messages); // Convert object to array
-            console.log(messageArray);
             // Decrypt the messages
             const decryptedMessages = messageArray.map((msg) => ({
                 amount: decrypt(msg.amount),
@@ -63,9 +62,13 @@ export async function getUserMessagesById(userId) {
                 type: decrypt(msg.Type),
             }));
 
-            return decryptedMessages; // Return decrypted messages
+            decryptedMessages.sort(
+                (a, b) => new Date(b.date) - new Date(a.date)
+            );
+
+            return decryptedMessages;
         } else {
-            return []; // Return an empty array if no messages found
+            return [];
         }
     } catch (error) {
         console.error("Error retrieving user messages:", error);
@@ -130,3 +133,122 @@ export const monthlyDebitCredit = (messages, monthNumber) => {
         totalCredit,
     };
 };
+
+// export async function getUserMonthlyMessagesById(userId, month) {
+//     try {
+//         const snapshot = await db.ref(`user/${userId}/messages`).once("value");
+//         const messages = snapshot.val();
+
+//         if (messages) {
+//             const messageArray = Object.values(messages);
+
+//             const filteredMessages = messageArray.filter((msg) => {
+//                 const decryptedDate = decrypt(msg.date);
+//                 const dateParts = decryptedDate.split('/');
+//                 const messageMonth = dateParts[1];
+//                 return messageMonth === month;
+//             });
+
+//             const decryptedMessages = filteredMessages.map((msg) => ({
+//                 amount: decrypt(msg.amount),
+//                 date: decrypt(msg.date),
+//                 sender: msg.sender,
+//                 type: decrypt(msg.Type),
+//             }));
+
+//             decryptedMessages.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+//             return decryptedMessages;
+//         } else {
+//             return [];
+//         }
+//     } catch (error) {
+//         console.error("Error retrieving monthly messages:", error);
+//         throw new Error("Failed to retrieve monthly messages");
+//     }
+// }
+
+export async function getUserMonthlyMessagesById(userId, monthYear) {
+    try {
+        // Fetch the messages for the specified user
+        const snapshot = await db
+            .ref(`user/${userId}/messages/Month-Year/${monthYear}`)
+            .once("value");
+        const messages = snapshot.val();
+
+        if (messages) {
+            const messageArray = Object.keys(messages).map((key) => ({
+                ...messages[key], // Decrypt data
+                timestamp: key, // Add the key as a timestamp
+            }));
+
+            const decryptedMessages = messageArray.map((msg) => ({
+                    amount: decrypt(msg.amount),
+                    date: decrypt(msg.encryptedDateTime), // Use the `dateTime` field for the actual date
+                    sender: msg.sender,
+                    type: decrypt(msg.type), // Ensure type is decrypted correctly
+                    timestamp: msg.timestamp, // Include timestamp for sorting
+            }));
+
+            // Sort the messages by date (descending)
+            decryptedMessages.sort(
+                (a, b) => new Date(b.date) - new Date(a.date)
+            );
+
+            return decryptedMessages;
+        } else {
+            return []; // Return empty array if no messages found
+        }
+    } catch (error) {
+        console.error("Error retrieving monthly messages:", error);
+        throw new Error("Failed to retrieve monthly messages");
+    }
+}
+
+
+//kam nhi kar rha hai
+
+// export async function getUserYearlyMassagesById(userId, year) {
+//     try {
+//         const snapshot = await db
+//             .ref(`user/${userId}/messages/Month-Year`)
+//             .once("value");
+//         const messages = snapshot.val(); // All month-year messages
+
+//         if (messages) {
+//             const filteredMessages = Object.keys(messages).filter(
+//                 (monthYear) => {
+//                     const messageYear = monthYear.substring(2);
+//                     return messageYear === year;
+//                 }
+//             );
+
+//             const decryptedMessages = Object.keys(messages).map(key => {
+//                 const transaction = messages[key];
+            
+//                 return {
+//                     amount: transaction.amount ? decrypt(transaction.amount) : null,
+//                     dateTime: transaction.dateTime,  // No decryption needed
+//                     encryptedDateTime: transaction.encryptedDateTime,  // Keep it as is if needed
+//                     sender: transaction.sender || "Unknown",  // Default to "Unknown" if sender is missing
+//                     type: transaction.type ? decrypt(transaction.type) : null,
+//                 };
+//             });
+
+//             console.log("msg",decryptedMessages);
+
+//             const validMessages = decryptedMessages.filter(
+//                 (msg) => msg.date && msg.amount
+//             );
+
+//             validMessages.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+//             return validMessages;
+//         } else {
+//             return [];
+//         }
+//     } catch (error) {
+//         console.error("Error retrieving yearly messages:", error);
+//         throw new Error("Failed to retrieve yearly messages");
+//     }
+// }
