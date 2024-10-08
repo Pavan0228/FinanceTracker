@@ -208,47 +208,47 @@ export async function getUserMonthlyMessagesById(userId, monthYear) {
 
 //kam nhi kar rha hai
 
-// export async function getUserYearlyMassagesById(userId, year) {
-//     try {
-//         const snapshot = await db
-//             .ref(`user/${userId}/messages/Month-Year`)
-//             .once("value");
-//         const messages = snapshot.val(); // All month-year messages
+export async function getUserYearlyMassagesById(userId, year) {
+    try {
+        const snapshot = await db
+            .ref(`user/${userId}/messages/Month-Year`)
+            .once("value");
+        const messages = snapshot.val(); // All month-year messages
 
-//         if (messages) {
-//             const filteredMessages = Object.keys(messages).filter(
-//                 (monthYear) => {
-//                     const messageYear = monthYear.substring(2);
-//                     return messageYear === year;
-//                 }
-//             );
+        if (messages) {
+            const filteredMessages = Object.keys(messages).filter(
+                (monthYear) => {
+                    const messageYear = monthYear.substring(2);
+                    return messageYear === year;
+                }
+            );
 
-//             const decryptedMessages = Object.keys(messages).map(key => {
-//                 const transaction = messages[key];
+            const decryptedMessages = Object.keys(messages).map(key => {
+                const transaction = messages[key];
             
-//                 return {
-//                     amount: transaction.amount ? decrypt(transaction.amount) : null,
-//                     dateTime: transaction.dateTime,  // No decryption needed
-//                     encryptedDateTime: transaction.encryptedDateTime,  // Keep it as is if needed
-//                     sender: transaction.sender || "Unknown",  // Default to "Unknown" if sender is missing
-//                     type: transaction.type ? decrypt(transaction.type) : null,
-//                 };
-//             });
+                return {
+                    amount: transaction.amount ? decrypt(transaction.amount) : null,
+                    dateTime: transaction.dateTime,  // No decryption needed
+                    encryptedDateTime: transaction.encryptedDateTime,  // Keep it as is if needed
+                    sender: transaction.sender || "Unknown",  // Default to "Unknown" if sender is missing
+                    type: transaction.type ? decrypt(transaction.type) : null,
+                };
+            });
 
-//             console.log("msg",decryptedMessages);
+            console.log("msg",decryptedMessages);
 
-//             const validMessages = decryptedMessages.filter(
-//                 (msg) => msg.date && msg.amount
-//             );
+            const validMessages = decryptedMessages.filter(
+                (msg) => msg.date && msg.amount
+            );
 
-//             validMessages.sort((a, b) => new Date(b.date) - new Date(a.date));
+            validMessages.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-//             return validMessages;
-//         } else {
-//             return [];
-//         }
-//     } catch (error) {
-//         console.error("Error retrieving yearly messages:", error);
-//         throw new Error("Failed to retrieve yearly messages");
-//     }
-// }
+            return validMessages;
+        } else {
+            return [];
+        }
+    } catch (error) {
+        console.error("Error retrieving yearly messages:", error);
+        throw new Error("Failed to retrieve yearly messages");
+    }
+}
