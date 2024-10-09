@@ -238,25 +238,25 @@ export async function getUserYearlyMessagesById(userId, year) {
 
         // Loop through each month-year key (e.g., 'MMYYYY')
         for (const monthYear in userData) {
+
             const messageYear = parseInt(monthYear.slice(2, 6), 10); // Extract the 'YYYY'
 
-            // Process only if the year matches the requested year
             if (messageYear === parseInt(year, 10)) {
                 const monthMessages = userData[monthYear];
-
                 // Loop through messages for the specific month
                 for (const messageId in monthMessages) {
                     const msg = monthMessages[messageId];
                     try {
                         // Decrypt the necessary fields
                         const decryptedAmount = decrypt(msg.amount);
-                        const decryptedDate = decrypt(msg.encryptedDateTime);
+                        const decryptedDate = msg.dateTime;
                         const decryptedType = decrypt(msg.type);
-
                         // Verify if the decrypted date falls within the correct year
-                        const dateObject = new Date(decryptedDate);
-                        const decryptedYear = dateObject.getFullYear();
-
+                        const dateObject = decryptedDate;
+                        console.log(dateObject)
+                        //split decrypted year after dd/mm/ till /yyyy
+                        const decryptedYear = parseInt(dateObject.split('/')[2], 10);
+                        console.log(decryptedYear)
                         if (decryptedYear === parseInt(year, 10)) {
                             decryptedMessages.push({
                                 amount: parseFloat(decryptedAmount),
@@ -277,96 +277,9 @@ export async function getUserYearlyMessagesById(userId, year) {
         // Sort messages by date (descending)
         decryptedMessages.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-        console.log(`Total decrypted messages for ${year}:`, decryptedMessages.length);
         return decryptedMessages;
     } catch (error) {
         console.error("Error in getUserYearlyMessagesById:", error);
         throw new Error("Failed to retrieve yearly messages");
     }
 }
-
-
-// export async function debugGetUserYearlyMessagesById(userId, year) {
-//     console.log("Starting debugGetUserYearlyMessagesById");
-//     console.log("User ID:", userId);
-//     console.log("Year:", year);
-
-//     try {
-//         console.log("Attempting to fetch data from Firebase");
-//         const rootSnapshot = await db.ref().once("value");
-//         console.log(
-//             "Root data structure:",
-//             JSON.stringify(rootSnapshot.val(), null, 2)
-//         );
-
-//         console.log("Attempting to fetch user data");
-//         const userSnapshot = await db.ref(userId).once("value");
-//         console.log(
-//             "User data structure:",
-//             JSON.stringify(userSnapshot.val(), null, 2)
-//         );
-
-//         console.log("Attempting to fetch messages data");
-//         const messagesSnapshot = await db
-//             .ref(`${userId}/messages`)
-//             .once("value");
-//         console.log(
-//             "Messages data structure:",
-//             JSON.stringify(messagesSnapshot.val(), null, 2)
-//         );
-
-//         console.log("Attempting to fetch Month-Year data");
-//         const monthYearSnapshot = await db
-//             .ref(`${userId}/messages/Month-Year`)
-//             .once("value");
-//         console.log(
-//             "Month-Year data structure:",
-//             JSON.stringify(monthYearSnapshot.val(), null, 2)
-//         );
-
-//         const messages = monthYearSnapshot.val();
-
-//         if (messages) {
-//             console.log("Messages found. Processing...");
-//             const decryptedMessages = [];
-
-//             for (const monthYear in messages) {
-//                 console.log(`Processing month-year: ${monthYear}`);
-//                 if (monthYear.endsWith(year.toString().slice(-2))) {
-//                     const monthMessages = messages[monthYear];
-//                     for (const timestamp in monthMessages) {
-//                         const msg = monthMessages[timestamp];
-//                         console.log(`Processing message: ${timestamp}`);
-//                         try {
-//                             const decryptedMsg = {
-//                                 amount: decrypt(msg.amount),
-//                                 date: decrypt(msg.encryptedDateTime),
-//                                 sender: msg.sender,
-//                                 type: decrypt(msg.type),
-//                                 timestamp: timestamp,
-//                             };
-//                             decryptedMessages.push(decryptedMsg);
-//                             console.log("Decrypted message:", decryptedMsg);
-//                         } catch (decryptError) {
-//                             console.error(
-//                                 "Error decrypting message:",
-//                                 decryptError
-//                             );
-//                         }
-//                     }
-//                 }
-//             }
-
-//             console.log(
-//                 `Total decrypted messages: ${decryptedMessages.length}`
-//             );
-//             return decryptedMessages;
-//         } else {
-//             console.log("No messages found for the specified user and year");
-//             return [];
-//         }
-//     } catch (error) {
-//         console.error("Error in debugGetUserYearlyMessagesById:", error);
-//         throw new Error("Failed to retrieve yearly messages");
-//     }
-// }

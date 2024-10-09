@@ -143,23 +143,22 @@ router.get('/allMonthSummary/:userId/:year', async (req, res) => {
     try {
         // Fetch all messages for the specified year
         const yearlyMessages = await getUserYearlyMessagesById(userId, year);
-
-        // Initialize an object to hold totals per month
         const monthlyTotals = {};
-
-    
+        // console.log(yearlyMessages)
 
         // Aggregate totals
         yearlyMessages.forEach((msg) => {
-            const msgDate = new Date(msg.date);
-            const month = msgDate.getMonth() + 1; // getMonth() is zero-based
-
-            // Initialize totals for the month if not present
+            const msgDate = msg.date;
+            // console.log(msgDate)
+            //split after DD/ till /YYYY
+            const monthPart = msgDate.split('/')[1];  // Extract the month part after DD/
+            const month = parseInt(monthPart, 10);  // Convert to integer
+            // console.log(month)
             if (!monthlyTotals[month]) {
                 monthlyTotals[month] = { totalCredit: 0, totalDebit: 0 };
             }
 
-            // Aggregate debit and credit amounts
+            // Aggregate debit and credit amounts based on the transaction type
             if (msg.type === "Debited") {
                 monthlyTotals[month].totalDebit += parseFloat(msg.amount);
             } else if (msg.type === "Credited") {
@@ -167,7 +166,7 @@ router.get('/allMonthSummary/:userId/:year', async (req, res) => {
             }
         });
 
-        // Convert to array format and filter out months with no transactions
+        // Convert to array format, filter out months with no data (i.e., totalCredit and totalDebit are 0)
         const financeSummary = Object.keys(monthlyTotals).map((month) => ({
             month: parseInt(month),
             totalCredit: monthlyTotals[month].totalCredit,
