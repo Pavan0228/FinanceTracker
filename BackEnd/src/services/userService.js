@@ -253,10 +253,8 @@ export async function getUserYearlyMessagesById(userId, year) {
                         const decryptedType = decrypt(msg.type);
                         // Verify if the decrypted date falls within the correct year
                         const dateObject = decryptedDate;
-                        console.log(dateObject)
                         //split decrypted year after dd/mm/ till /yyyy
                         const decryptedYear = parseInt(dateObject.split('/')[2], 10);
-                        console.log(decryptedYear)
                         if (decryptedYear === parseInt(year, 10)) {
                             decryptedMessages.push({
                                 amount: parseFloat(decryptedAmount),

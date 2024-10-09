@@ -145,13 +145,10 @@ router.get('/allMonthSummary/:userId/:year', async (req, res) => {
         // Fetch all messages for the specified year
         const yearlyMessages = await getUserYearlyMessagesById(userId, year);
         const monthlyTotals = {};
-        // console.log(yearlyMessages)
 
         // Aggregate totals
         yearlyMessages.forEach((msg) => {
             const msgDate = msg.date;
-            // console.log(msgDate)
-            //split after DD/ till /YYYY
             const monthPart = msgDate.split('/')[1];  // Extract the month part after DD/
             const month = parseInt(monthPart, 10);  // Convert to integer
             // console.log(month)
