@@ -27,7 +27,8 @@ export async function createUser(userData) {
     await userRef.set(userData);
 }
 
-// Function to get user data by ID
+//! Function to get user data by ID
+
 export async function getUserDataById(userId) {
     try {
         const snapshot = await db.ref(`user/${userId}`).once("value");
@@ -45,28 +46,37 @@ export async function getUserDataById(userId) {
         throw new Error("Failed to retrieve user data");
     }
 }
-
+//!  Working
 export async function getUserMessagesById(userId) {
     try {
-        const snapshot = await db.ref(`user/${userId}/messages`).once("value");
+        const snapshot = await db.ref(`user/${userId}/messages/Month-Year`).once("value");
         const messages = snapshot.val();
-
         // Check if messages exist and convert to an array
         if (messages) {
-            const messageArray = Object.values(messages); // Convert object to array
-            // Decrypt the messages
-            const decryptedMessages = messageArray.map((msg) => ({
-                amount: decrypt(msg.amount),
-                date: decrypt(msg.date),
-                sender: msg.sender,
-                type: decrypt(msg.Type),
-            }));
+            const messageArray = [];
+            
 
-            decryptedMessages.sort(
-                (a, b) => new Date(b.date) - new Date(a.date)
-            );
+            // Iterate over each month-year object
+            for (const monthYear in messages) {
+                const monthMessages = messages[monthYear];
+                
+                // Iterate over each message in the month-year
+                for (const msg in monthMessages) {
+                    const message = monthMessages[msg];
 
-            return decryptedMessages;
+                    // Decrypt the messages and push to the array
+                    messageArray.push({
+                        amount: decrypt(message.amount),
+                        date: message.dateTime.split(" ")[0], // Extract just the date part
+                        sender: message.sender,
+                        type: decrypt(message.type),
+                    });
+                }
+            }
+
+            // Sort messages by date
+            messageArray.sort((a, b) => new Date(b.date) - new Date(a.date));
+            return messageArray;
         } else {
             return [];
         }
@@ -77,17 +87,21 @@ export async function getUserMessagesById(userId) {
 }
 
 // Function to calculate total debits and credits
+
+//!  Working
 export const calculateTotalDebitsAndCredits = (messages) => {
     let totalDebit = 0;
     let totalCredit = 0;
 
     if (messages) {
-        for (const messageId in messages) {
-            const message = messages[messageId];
+        for (const message of messages) {
+            // Iterate over the messages array
+            const amount = parseFloat(message.amount); // Accessing amount from the message object
+
             if (message.type === "Debited") {
-                totalDebit += parseFloat(message.amount);
+                totalDebit += amount || 0; // Add amount if it's a debit
             } else if (message.type === "Credited") {
-                totalCredit += parseFloat(message.amount);
+                totalCredit += amount || 0; // Add amount if it's a credit
             }
         }
     }
@@ -183,11 +197,11 @@ export async function getUserMonthlyMessagesById(userId, monthYear) {
             }));
 
             const decryptedMessages = messageArray.map((msg) => ({
-                    amount: decrypt(msg.amount),
-                    date: decrypt(msg.encryptedDateTime), // Use the `dateTime` field for the actual date
-                    sender: msg.sender,
-                    type: decrypt(msg.type), // Ensure type is decrypted correctly
-                    timestamp: msg.timestamp, // Include timestamp for sorting
+                amount: decrypt(msg.amount),
+                date: decrypt(msg.encryptedDateTime), // Use the `dateTime` field for the actual date
+                sender: msg.sender,
+                type: decrypt(msg.type), // Ensure type is decrypted correctly
+                timestamp: msg.timestamp, // Include timestamp for sorting
             }));
 
             // Sort the messages by date (descending)
@@ -205,50 +219,67 @@ export async function getUserMonthlyMessagesById(userId, monthYear) {
     }
 }
 
-
 //kam nhi kar rha hai
-
-export async function getUserYearlyMassagesById(userId, year) {
+// Function to get user yearly messages by ID
+export async function getUserYearlyMessagesById(userId, year) {
     try {
-        const snapshot = await db
-            .ref(`user/${userId}/messages/Month-Year`)
-            .once("value");
-        const messages = snapshot.val(); // All month-year messages
+        console.log("Fetching data for user:", userId, "and year:", year);
 
-        if (messages) {
-            const filteredMessages = Object.keys(messages).filter(
-                (monthYear) => {
-                    const messageYear = monthYear.substring(2);
-                    return messageYear === year;
-                }
-            );
+        // Fetch the 'Month-Year' data for the user
+        const snapshot = await db.ref(`user/${userId}/messages/Month-Year`).once("value");
+        const userData = snapshot.val();
 
-            const decryptedMessages = Object.keys(messages).map(key => {
-                const transaction = messages[key];
-            
-                return {
-                    amount: transaction.amount ? decrypt(transaction.amount) : null,
-                    dateTime: transaction.dateTime,  // No decryption needed
-                    encryptedDateTime: transaction.encryptedDateTime,  // Keep it as is if needed
-                    sender: transaction.sender || "Unknown",  // Default to "Unknown" if sender is missing
-                    type: transaction.type ? decrypt(transaction.type) : null,
-                };
-            });
-
-            console.log("msg",decryptedMessages);
-
-            const validMessages = decryptedMessages.filter(
-                (msg) => msg.date && msg.amount
-            );
-
-            validMessages.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-            return validMessages;
-        } else {
+        if (!userData) {
+            console.log("No user data found for ID:", userId);
             return [];
         }
+
+        const decryptedMessages = [];
+
+        // Loop through each month-year key (e.g., 'MMYYYY')
+        for (const monthYear in userData) {
+
+            const messageYear = parseInt(monthYear.slice(2, 6), 10); // Extract the 'YYYY'
+
+            if (messageYear === parseInt(year, 10)) {
+                const monthMessages = userData[monthYear];
+                // Loop through messages for the specific month
+                for (const messageId in monthMessages) {
+                    const msg = monthMessages[messageId];
+                    try {
+                        // Decrypt the necessary fields
+                        const decryptedAmount = decrypt(msg.amount);
+                        const decryptedDate = msg.dateTime;
+                        const decryptedType = decrypt(msg.type);
+                        // Verify if the decrypted date falls within the correct year
+                        const dateObject = decryptedDate;
+                        console.log(dateObject)
+                        //split decrypted year after dd/mm/ till /yyyy
+                        const decryptedYear = parseInt(dateObject.split('/')[2], 10);
+                        console.log(decryptedYear)
+                        if (decryptedYear === parseInt(year, 10)) {
+                            decryptedMessages.push({
+                                amount: parseFloat(decryptedAmount),
+                                date: decryptedDate,
+                                sender: msg.sender || "Unknown",
+                                type: decryptedType,
+                                messageId: messageId,
+                            });
+                        }
+                    } catch (decryptError) {
+                        console.error("Error decrypting message:", messageId, decryptError);
+                        // Optionally skip the message if decryption fails
+                    }
+                }
+            }
+        }
+
+        // Sort messages by date (descending)
+        decryptedMessages.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        return decryptedMessages;
     } catch (error) {
-        console.error("Error retrieving yearly messages:", error);
+        console.error("Error in getUserYearlyMessagesById:", error);
         throw new Error("Failed to retrieve yearly messages");
     }
 }
