@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell } from 'recharts';
-import { Bell, CreditCard, FileSpreadsheet } from 'lucide-react';
+import { Bell, Clock, Clock10, CreditCard, FileSpreadsheet, PowerOffIcon, User } from 'lucide-react';
 import axios from 'axios';
 
 // Custom Card components
@@ -21,21 +21,30 @@ const FinanceDashboard = () => {
     const [totalAmounts, setTotalAmounts] = useState({ totalDebit: 0, totalCredit: 0 });
     const [monthlyDebit, setMonthlyDebit] = useState(0);
     const [monthlyCredit, setMonthlyCredit] = useState(0);
+    const [showText, setShowText] = useState(false);
+    const [showLogout, setShowLogout] = useState(false);
 
 
     const MONTHLY_LIMIT = 3000; // Hardcoded monthly limit
+    const COLORS = ['#FF8042', '#00C49F', '#FFBB28', '#0088FE'];
 
     useEffect(() => {
         const fetchData = async () => {
             try {
+                const userId = localStorage.getItem('uid');
+                if (!userId) {
+                    console.error('User ID not found in localStorage');
+                    return;
+                }
+
                 const currentDate = new Date();
                 const currentMonth = currentDate.getMonth() + 1; // JavaScript months are 0-indexed
                 const currentYear = currentDate.getFullYear();
 
                 const [monthlyResponse, totalResponse, monthlyDebitResponse] = await Promise.all([
-                    axios.get('http://localhost:3000/api/expense/allMonthSummary/KyHftWveuUdjgGR182uIXXKcBmC3/2024'),
-                    axios.get('http://localhost:3000/api/expense/KyHftWveuUdjgGR182uIXXKcBmC3/total'),
-                    axios.get(`http://localhost:3000/api/expense/KyHftWveuUdjgGR182uIXXKcBmC3/monthlyDebitCredit/${currentMonth}/${currentYear}`)
+                    axios.get(`http://localhost:3000/api/expense/allMonthSummary/${userId}/2024`),
+                    axios.get(`http://localhost:3000/api/expense/${userId}/total`),
+                    axios.get(`http://localhost:3000/api/expense/${userId}/monthlyDebitCredit/${currentMonth}/${currentYear}`)
                 ]);
 
                 const processedData = processMonthlyData(monthlyResponse.data);
@@ -54,16 +63,6 @@ const FinanceDashboard = () => {
         fetchData();
     }, []);
 
-
-    const getMonthlyDebitData = () => [
-        { name: 'Spent', value: monthlyDebit },
-        { name: 'Remaining', value: Math.max(MONTHLY_LIMIT - monthlyDebit, 0) },
-        
-
-    ];
-
-
-
     const processMonthlyData = (data) => {
         const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         const fullData = monthNames.map((name, index) => {
@@ -76,15 +75,17 @@ const FinanceDashboard = () => {
         });
         return fullData;
     };
-    // Placeholder data for other charts
-    const assetData = [
-        { name: 'Gold', value: 15700 },
-        { name: 'Stocks', value: 22500 },
-        { name: 'Real Estate', value: 120000 },
-        { name: 'Land', value: 133000 },
+
+    const getMonthlyDebitData = () => [
+        { name: 'Spent', value: monthlyDebit },
+        { name: 'Remaining', value: Math.max(MONTHLY_LIMIT - monthlyDebit, 0) },
     ];
 
-    const COLORS = ['#FF8042', '#00C49F', '#FFBB28', '#0088FE'];
+
+    const handleLogout = () =>{
+        localStorage.clear();
+        window.location.href = '/';
+    }
 
     return (
         <div className="bg-gray-900 text-white p-6 rounded-lg h-full min-h-screen">
@@ -94,9 +95,38 @@ const FinanceDashboard = () => {
                     <p className="text-4xl font-bold text-green-400">₹14,822</p>
                 </div>
                 <div className="flex space-x-4">
-                    <CreditCard size={24} />
-                    <FileSpreadsheet size={24} />
-                    <p className="text-sm">{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                    <Clock10 />
+                    <p className="text-sm hover:text-green-300">{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                    <div className="relative">
+                        <FileSpreadsheet
+                            size={24}
+                            className="cursor-pointer hover:text-green-400 transition-colors duration-200"
+                            onMouseEnter={() => setShowText(true)}
+                            onMouseLeave={() => setShowText(false)}
+                        />
+                        {showText && (
+                            <div className="absolute right-0 mt-2 py-2 px-4 bg-gray-800 text-white text-sm rounded-md shadow-lg z-10 whitespace-nowrap transition-opacity duration-200 opacity-100">
+                                Download as CSV
+                            </div>
+                        )}
+                    </div>
+
+
+                    <User size={24} className='hover:text-green-400' />
+                    <div onClick={handleLogout}>
+
+                    <PowerOffIcon className='hover:text-red-600' size={24}
+                        onMouseEnter={() => setShowLogout(true)}
+                        onMouseLeave={() => setShowLogout(false)}
+                        
+                        />
+                        {showLogout && (
+                            <div className="absolute right-0 mt-2 py-2 px-4 bg-gray-800 text-white text-sm rounded-md shadow-lg z-10 whitespace-nowrap transition-opacity duration-200 opacity-100">
+                                Logout
+                            </div>
+                        )}
+
+                        </div>
                 </div>
             </div>
 
@@ -174,12 +204,12 @@ const FinanceDashboard = () => {
                         </ResponsiveContainer>
                         <div className="text-center mt-2">
                             <p>Monthly Limit: ₹{MONTHLY_LIMIT.toLocaleString()}</p>
-                            <p >Spent: 
-                                <span className="text-red-500">₹{monthlyDebit.toLocaleString()}</span>
+                            <p>Spent:
+                                <span className="text-red-500"> ₹{monthlyDebit.toLocaleString()}</span>
                             </p>
                             <p>Remaining: ₹{Math.max(MONTHLY_LIMIT - monthlyDebit, 0).toLocaleString()}</p>
-                            <p> Credited :
-                                <span className="text-green-500">₹{monthlyCredit.toLocaleString()}</span>
+                            <p>Credited:
+                                <span className="text-green-500"> ₹{monthlyCredit.toLocaleString()}</span>
                             </p>
                         </div>
                     </CardContent>
