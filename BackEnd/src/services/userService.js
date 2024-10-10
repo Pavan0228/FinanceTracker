@@ -198,7 +198,7 @@ export async function getUserMonthlyMessagesById(userId, monthYear) {
 
             const decryptedMessages = messageArray.map((msg) => ({
                 amount: decrypt(msg.amount),
-                date: decrypt(msg.encryptedDateTime), // Use the `dateTime` field for the actual date
+                date: msg.dateTime, // Use the `dateTime` field for the actual date
                 sender: msg.sender,
                 type: decrypt(msg.type), // Ensure type is decrypted correctly
                 timestamp: msg.timestamp, // Include timestamp for sorting
