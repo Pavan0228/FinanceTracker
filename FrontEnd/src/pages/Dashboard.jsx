@@ -28,10 +28,10 @@ const FinanceDashboard = () => {
     const MONTHLY_LIMIT = 3000; // Hardcoded monthly limit
     const COLORS = ['#FF8042', '#00C49F', '#FFBB28', '#0088FE'];
 
+    const userId = localStorage.getItem('uid');
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const userId = localStorage.getItem('uid');
                 if (!userId) {
                     console.error('User ID not found in localStorage');
                     return;
@@ -61,7 +61,7 @@ const FinanceDashboard = () => {
         };
 
         fetchData();
-    }, []);
+    }, [userId]);
 
     const processMonthlyData = (data) => {
         const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -88,57 +88,52 @@ const FinanceDashboard = () => {
     }
 
     return (
-        <div className="bg-gray-900 text-white p-6 rounded-lg h-full min-h-screen">
-            <div className="flex justify-between items-center mb-6">
+        <div className="bg-gray-900 text-white p-4 sm:p-6 rounded-lg min-h-screen">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
                 <div>
-                    <h1 className="text-2xl font-bold">Available Balance</h1>
-                    <p className="text-4xl font-bold text-green-400">₹14,822</p>
+                    <h1 className="text-xl sm:text-2xl font-bold">Available Balance</h1>
+                    <p className="text-3xl sm:text-4xl font-bold text-green-400">₹14,822</p>
                 </div>
-                <div className="flex space-x-4">
-                    <Clock10 />
-                    <p className="text-sm hover:text-green-300">{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                <div className="flex flex-wrap items-center space-x-2 sm:space-x-4">
+                    <Clock10 className="w-5 h-5 sm:w-6 sm:h-6" />
+                    <p className="text-xs sm:text-sm hover:text-green-300">{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
                     <div className="relative">
                         <FileSpreadsheet
-                            size={24}
+                            size={20}
                             className="cursor-pointer hover:text-green-400 transition-colors duration-200"
                             onMouseEnter={() => setShowText(true)}
                             onMouseLeave={() => setShowText(false)}
                         />
                         {showText && (
-                            <div className="absolute right-0 mt-2 py-2 px-4 bg-gray-800 text-white text-sm rounded-md shadow-lg z-10 whitespace-nowrap transition-opacity duration-200 opacity-100">
+                            <div className="absolute right-0 mt-2 py-2 px-4 bg-gray-800 text-white text-xs sm:text-sm rounded-md shadow-lg z-10 whitespace-nowrap transition-opacity duration-200 opacity-100">
                                 Download as CSV
                             </div>
                         )}
                     </div>
-
-
-                    <User size={24} className='hover:text-green-400' />
-                    <div onClick={handleLogout}>
-
-                    <PowerOffIcon className='hover:text-red-600' size={24}
-                        onMouseEnter={() => setShowLogout(true)}
-                        onMouseLeave={() => setShowLogout(false)}
-                        
+                    <User size={20} className='hover:text-green-400' />
+                    <div onClick={handleLogout} className="relative">
+                        <PowerOffIcon className='hover:text-red-600' size={20}
+                            onMouseEnter={() => setShowLogout(true)}
+                            onMouseLeave={() => setShowLogout(false)}
                         />
                         {showLogout && (
-                            <div className="absolute right-0 mt-2 py-2 px-4 bg-gray-800 text-white text-sm rounded-md shadow-lg z-10 whitespace-nowrap transition-opacity duration-200 opacity-100">
+                            <div className="absolute right-0 mt-2 py-2 px-4 bg-gray-800 text-white text-xs sm:text-sm rounded-md shadow-lg z-10 whitespace-nowrap transition-opacity duration-200 opacity-100">
                                 Logout
                             </div>
                         )}
-
-                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-6">
-                <Card className="bg-orange-500 col-span-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                <Card className="bg-orange-500 col-span-1 sm:col-span-2 lg:col-span-1">
                     <CardContent>
-                        <h2 className="text-xl font-bold mb-2">Total Spendings</h2>
-                        <p className="text-3xl font-bold">₹{totalAmounts.totalDebit.toLocaleString()}</p>
+                        <h2 className="text-lg sm:text-xl font-bold mb-2">Total Spendings</h2>
+                        <p className="text-2xl sm:text-3xl font-bold">₹{totalAmounts.totalDebit.toLocaleString()}</p>
                     </CardContent>
                     <CardContent>
-                        <h2 className="text-xl font-bold mb-2">Total Earnings</h2>
-                        <p className="text-3xl font-bold">₹{totalAmounts.totalCredit.toLocaleString()}</p>
+                        <h2 className="text-lg sm:text-xl font-bold mb-2">Total Earnings</h2>
+                        <p className="text-2xl sm:text-3xl font-bold">₹{totalAmounts.totalCredit.toLocaleString()}</p>
                     </CardContent>
                 </Card>
 
@@ -164,7 +159,7 @@ const FinanceDashboard = () => {
                     </CardContent>
                 </Card>
 
-                <Card className="bg-gray-800 col-span-2">
+                <Card className="bg-gray-800 col-span-1 sm:col-span-2">
                     <CardHeader>All Year Income & Expenses</CardHeader>
                     <CardContent>
                         <ResponsiveContainer width="100%" height={300}>
@@ -202,15 +197,11 @@ const FinanceDashboard = () => {
                                 <Legend />
                             </PieChart>
                         </ResponsiveContainer>
-                        <div className="text-center mt-2">
+                        <div className="text-center mt-2 text-sm sm:text-base">
                             <p>Monthly Limit: ₹{MONTHLY_LIMIT.toLocaleString()}</p>
-                            <p>Spent:
-                                <span className="text-red-500"> ₹{monthlyDebit.toLocaleString()}</span>
-                            </p>
+                            <p>Spent: <span className="text-red-500">₹{monthlyDebit.toLocaleString()}</span></p>
                             <p>Remaining: ₹{Math.max(MONTHLY_LIMIT - monthlyDebit, 0).toLocaleString()}</p>
-                            <p>Credited:
-                                <span className="text-green-500"> ₹{monthlyCredit.toLocaleString()}</span>
-                            </p>
+                            <p>Credited: <span className="text-green-500">₹{monthlyCredit.toLocaleString()}</span></p>
                         </div>
                     </CardContent>
                 </Card>
