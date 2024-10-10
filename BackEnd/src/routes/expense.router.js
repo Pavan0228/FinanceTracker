@@ -66,6 +66,7 @@ router.get("/:id/monthlyDebitCredit/:month/:year", async (req, res) => {
         const userId = req.params.id; // Extract userId from route params
         const monthNumber = parseInt(req.params.month); // Extract month from route params
         const year = parseInt(req.params.year); // Extract year from route params
+        
 
         // Validate monthNumber and year
         if (isNaN(monthNumber) || monthNumber < 1 || monthNumber > 12) {
