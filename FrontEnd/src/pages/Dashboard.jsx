@@ -21,14 +21,16 @@ const FinanceDashboard = () => {
     const [totalAmounts, setTotalAmounts] = useState({ totalDebit: 0, totalCredit: 0 });
     const [monthlyDebit, setMonthlyDebit] = useState(0);
     const [monthlyCredit, setMonthlyCredit] = useState(0);
+    const [dailyDebit, setDailyDebit] = useState([]);
+    const [dailyCredit, setDailyCredit] = useState([]);
     const [showText, setShowText] = useState(false);
     const [showLogout, setShowLogout] = useState(false);
-
 
     const MONTHLY_LIMIT = 3000; // Hardcoded monthly limit
     const COLORS = ['#FF8042', '#00C49F', '#FFBB28', '#0088FE'];
 
     const userId = localStorage.getItem('uid');
+
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -41,10 +43,11 @@ const FinanceDashboard = () => {
                 const currentMonth = currentDate.getMonth() + 1; // JavaScript months are 0-indexed
                 const currentYear = currentDate.getFullYear();
 
-                const [monthlyResponse, totalResponse, monthlyDebitResponse] = await Promise.all([
+                const [monthlyResponse, totalResponse, monthlyDebitResponse, dailyResponse] = await Promise.all([
                     axios.get(`http://localhost:3000/api/expense/allMonthSummary/${userId}/2024`),
                     axios.get(`http://localhost:3000/api/expense/${userId}/total`),
-                    axios.get(`http://localhost:3000/api/expense/${userId}/monthlyDebitCredit/${currentMonth}/${currentYear}`)
+                    axios.get(`http://localhost:3000/api/expense/${userId}/monthlyDebitCredit/${currentMonth}/${currentYear}`),
+                    axios.get(`http://localhost:3000/api/expense/${userId}/monthly/messages/${currentMonth}/${currentYear}`),
                 ]);
 
                 const processedData = processMonthlyData(monthlyResponse.data);
@@ -55,6 +58,18 @@ const FinanceDashboard = () => {
                 });
                 setMonthlyDebit(monthlyDebitResponse.data.data.totalDebit);
                 setMonthlyCredit(monthlyDebitResponse.data.data.totalCredit);
+
+                // Process daily transactions
+                const dailyTransactions = dailyResponse.data.monthlyMessages;
+
+                // Process debit transactions
+                const debitTransactions = processTransactions(dailyTransactions, "Debited");
+                setDailyDebit(debitTransactions);
+
+                // Process credit transactions
+                const creditTransactions = processTransactions(dailyTransactions, "Credited");
+                setDailyCredit(creditTransactions);
+
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
@@ -63,9 +78,32 @@ const FinanceDashboard = () => {
         fetchData();
     }, [userId]);
 
+    const processTransactions = (transactions, type) => {
+        const filteredTransactions = transactions
+            .filter(transaction => transaction.type === type)
+            .map(transaction => ({
+                date: new Date(transaction.date).toLocaleDateString(),
+                amount: parseFloat(transaction.amount)
+            }));
+
+        // Group transactions by date and sum amounts
+        const groupedTransactions = filteredTransactions.reduce((acc, transaction) => {
+            if (!acc[transaction.date]) {
+                acc[transaction.date] = 0;
+            }
+            acc[transaction.date] += transaction.amount;
+            return acc;
+        }, {});
+
+        // Convert to array format for LineChart and sort by date
+        return Object.entries(groupedTransactions)
+            .map(([date, amount]) => ({ date, amount }))
+            .sort((a, b) => new Date(a.date) - new Date(b.date));
+    };
+
     const processMonthlyData = (data) => {
         const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        const fullData = monthNames.map((name, index) => {
+        return monthNames.map((name, index) => {
             const monthData = data.find(item => item.month === index + 1) || { totalCredit: 0, totalDebit: 0 };
             return {
                 name,
@@ -73,7 +111,6 @@ const FinanceDashboard = () => {
                 expenses: monthData.totalDebit
             };
         });
-        return fullData;
     };
 
     const getMonthlyDebitData = () => [
@@ -81,11 +118,23 @@ const FinanceDashboard = () => {
         { name: 'Remaining', value: Math.max(MONTHLY_LIMIT - monthlyDebit, 0) },
     ];
 
-
-    const handleLogout = () =>{
+    const handleLogout = () => {
         localStorage.clear();
         window.location.href = '/';
     }
+
+
+        const CustomDailyTool = ({ active, payload, label }) => {
+        if (active && payload && payload.length) {
+            return (
+                <div className="bg-gray-800 text-white p-2 rounded">
+                    <p>Date: {label}</p>
+                    <p>Amount: ₹{payload[0].value.toFixed(2)}</p>
+                </div>
+            );
+        }
+        return null;
+    };
 
     return (
         <div className="bg-gray-900 text-white p-4 sm:p-6 rounded-lg min-h-screen">
@@ -138,26 +187,33 @@ const FinanceDashboard = () => {
                 </Card>
 
                 <Card className="bg-gray-800 col-span-1">
-                    <CardHeader>Spendings</CardHeader>
+                    <CardHeader>Daily Debit</CardHeader>
                     <CardContent>
                         <ResponsiveContainer width="100%" height={100}>
-                            <LineChart data={monthlyData}>
-                                <Line type="monotone" dataKey="expenses" stroke="#FF8042" strokeWidth={2} />
+                            <LineChart data={dailyDebit}>
+                                <XAxis dataKey="date" hide />
+                                <YAxis hide />
+                                <Tooltip content={<CustomDailyTool />} />
+                                <Line type="monotone" dataKey="amount" stroke="#FF8042" strokeWidth={2} />
                             </LineChart>
                         </ResponsiveContainer>
                     </CardContent>
                 </Card>
 
                 <Card className="bg-gray-800 col-span-1">
-                    <CardHeader>Earnings</CardHeader>
+                    <CardHeader>Daily Credit</CardHeader>
                     <CardContent>
                         <ResponsiveContainer width="100%" height={100}>
-                            <LineChart data={monthlyData}>
-                                <Line type="monotone" dataKey="income" stroke="#00C49F" strokeWidth={2} />
+                            <LineChart data={dailyCredit}>
+                                <XAxis dataKey="date" hide />
+                                <YAxis hide />
+                                <Tooltip content={<CustomDailyTool />} />
+                                <Line type="monotone" dataKey="amount" stroke="#00C49F" strokeWidth={2} />
                             </LineChart>
                         </ResponsiveContainer>
                     </CardContent>
                 </Card>
+
 
                 <Card className="bg-gray-800 col-span-1 sm:col-span-2">
                     <CardHeader>All Year Income & Expenses</CardHeader>
