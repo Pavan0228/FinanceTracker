@@ -234,13 +234,13 @@ const FinanceDashboard = () => {
                 <Card className="bg-gray-800 col-span-1">
                     <CardHeader>Monthly Spending</CardHeader>
                     <CardContent>
-                        <ResponsiveContainer width="100%" height={200}>
+                        <ResponsiveContainer width="100%" height={250}>
                             <PieChart>
                                 <Pie
                                     data={getMonthlyDebitData()}
                                     cx="50%"
                                     cy="50%"
-                                    outerRadius={80}
+                                    outerRadius={70}
                                     fill="#8884d8"
                                     dataKey="value"
                                     label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
