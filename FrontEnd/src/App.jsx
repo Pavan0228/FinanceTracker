@@ -5,6 +5,7 @@ import Dashboard from "./pages/Dashboard";
 // import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoute";
+import DownloadCSV from "./pages/DownloadCSV";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         
         {/* Protected route */}
         <Route path="/dashboard" element={<ProtectedRoute element={<Dashboard />} />} />
+        <Route path="/download" element={<ProtectedRoute element={<DownloadCSV />} />} />  
       </Routes>
     </Router>
   );
