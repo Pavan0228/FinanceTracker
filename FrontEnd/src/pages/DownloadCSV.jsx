@@ -1,0 +1,258 @@
+import React, { useEffect } from "react";
+import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
+import axios from "axios";
+
+const DownloadFiles = () => {
+    const [jsonData, setJsonData] = React.useState([]);
+    const [totals, setTotals] = React.useState({ credited: 0, debited: 0 });
+
+    const userId = localStorage.getItem("uid");
+
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth() + 1; 
+    const currentYear = currentDate.getFullYear();
+
+    useEffect(() => {
+        const fetchMonthlyMessages = async () => {
+            try {
+                const response = await axios.get(
+                    `http://localhost:3000/api/expense/${userId}/monthly/messages/${currentMonth}/${currentYear}`
+                );
+                const messages = response.data.monthlyMessages;
+
+                let creditedTotal = 0;
+                let debitedTotal = 0;
+                messages.forEach((message) => {
+                    if (message.type === "Credited") {
+                        creditedTotal += parseFloat(message.amount);
+                    } else if (message.type === "Debited") {
+                        debitedTotal += parseFloat(message.amount);
+                    }
+                });
+
+                setJsonData(messages);
+                setTotals({ credited: creditedTotal, debited: debitedTotal });
+            } catch (error) {
+                console.error("Error fetching monthly messages:", error);
+            }
+        };
+
+        fetchMonthlyMessages();
+    }, [userId]);
+
+    const formatDate = (dateString) => {
+        return dateString.split(" ")[0];
+    };
+
+    const downloadCSV = () => {
+        const csvRows = [];
+        const headers = Object.keys(jsonData[0]);
+        csvRows.push(headers.join(","));
+
+        jsonData.forEach((item) => {
+            const values = headers.map((header) => item[header]);
+            csvRows.push(values.join(","));
+        });
+
+        const csvString = csvRows.join("\n");
+        const blob = new Blob([csvString], { type: "text/csv" });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.setAttribute("href", url);
+        a.setAttribute("download", "transactions.csv");
+        a.click();
+        window.URL.revokeObjectURL(url);
+    };
+
+    // Excel Download
+    const downloadExcel = () => {
+        const worksheet = XLSX.utils.json_to_sheet(jsonData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Transactions");
+        XLSX.writeFile(workbook, "transactions.xlsx");
+    };
+
+    const generatePDF = () => {
+        const doc = new jsPDF();
+
+        doc.text("Transaction Details", 20, 10);
+
+        const headers = [["Amount", "Date", "Sender", "Type"]];
+
+        const data = jsonData.map((item) => [
+            item.amount,
+            formatDate(item.date),
+            item.sender,
+            item.type,
+        ]);
+
+        doc.autoTable({
+            head: headers,
+            body: data,
+        });
+
+        return doc;
+    };
+
+    const downloadPDF = () => {
+        const doc = generatePDF();
+        doc.save("transactions.pdf");
+    };
+
+    const viewPDF = () => {
+        const doc = generatePDF();
+        window.open(doc.output("bloburl"), "_blank");
+    };
+
+    return (
+        <div>
+            <h1>Download and View Files</h1>
+            <br />
+            <button onClick={downloadCSV}>Download CSV</button>
+            <br />
+            <button onClick={downloadExcel}>Download Excel</button>
+            <br />
+            <button onClick={downloadPDF}>Download PDF</button>
+            <br />
+            <button onClick={viewPDF}>View PDF</button>
+        </div>
+    );
+};
+
+export default DownloadFiles;
+
+
+
+
+
+
+
+// const DownloadFiles = () => {
+//     const [jsonData, setJsonData] = React.useState([]);
+//     const [totals, setTotals] = React.useState({ credited: 0, debited: 0 });
+
+//     const userId = localStorage.getItem("uid");
+
+//     const currentDate = new Date();
+//     const currentMonth = currentDate.getMonth() + 1; // JavaScript months are 0-indexed
+//     const currentYear = currentDate.getFullYear();
+
+//     useEffect(() => {
+//         const fetchMonthlyMessages = async () => {
+//             try {
+//                 const response = await axios.get(
+//                     `http://localhost:3000/api/expense/${userId}/monthly/messages/${currentMonth}/${currentYear}`
+//                 );
+//                 const messages = response.data.monthlyMessages;
+
+//                 // Calculate totals for credited and debited
+//                 let creditedTotal = 0;
+//                 let debitedTotal = 0;
+//                 messages.forEach((message) => {
+//                     if (message.type === "Credited") {
+//                         creditedTotal += parseFloat(message.amount);
+//                     } else if (message.type === "Debited") {
+//                         debitedTotal += parseFloat(message.amount);
+//                     }
+//                 });
+
+//                 setJsonData(messages);
+//                 setTotals({ credited: creditedTotal, debited: debitedTotal });
+//             } catch (error) {
+//                 console.error("Error fetching monthly messages:", error);
+//             }
+//         };
+
+//         fetchMonthlyMessages();
+//     }, [userId]);
+
+//     const formatDate = (dateString) => {
+//         // Extract only the date part (yyyy-mm-dd)
+//         return dateString.split(" ")[0];
+//     };
+
+//     const downloadCSV = () => {
+//         const csvRows = [];
+//         const headers = Object.keys(jsonData[0]);
+//         csvRows.push(headers.join(","));
+
+//         jsonData.forEach((item) => {
+//             const values = headers.map((header) => item[header]);
+//             csvRows.push(values.join(","));
+//         });
+
+//         const csvString = csvRows.join("\n");
+//         const blob = new Blob([csvString], { type: "text/csv" });
+//         const url = window.URL.createObjectURL(blob);
+//         const a = document.createElement("a");
+//         a.setAttribute("href", url);
+//         a.setAttribute("download", "transactions.csv");
+//         a.click();
+//         window.URL.revokeObjectURL(url);
+//     };
+
+//     // Excel Download
+//     const downloadExcel = () => {
+//         const worksheet = XLSX.utils.json_to_sheet(jsonData);
+//         const workbook = XLSX.utils.book_new();
+//         XLSX.utils.book_append_sheet(workbook, worksheet, "Transactions");
+//         XLSX.writeFile(workbook, "transactions.xlsx");
+//     };
+
+//     // PDF Download and View
+//     const generatePDF = () => {
+//         const doc = new jsPDF();
+
+//         // Add Title
+//         doc.text("Transaction Details", 20, 10);
+
+//         // Add Table Headers
+//         const headers = [["Amount", "Date", "Sender", "Type"]];
+
+//         // Add Data
+//         const data = jsonData.map((item) => [
+//             item.amount,
+//             formatDate(item.date),
+//             item.sender,
+//             item.type,
+//         ]);
+
+//         // Table Format using autoTable
+//         doc.autoTable({
+//             head: headers,
+//             body: data,
+//         });
+
+//         return doc;
+//     };
+
+//     // Download PDF
+//     const downloadPDF = () => {
+//         const doc = generatePDF();
+//         doc.save("transactions.pdf");
+//     };
+
+//     // View PDF
+//     const viewPDF = () => {
+//         const doc = generatePDF();
+//         window.open(doc.output("bloburl"), "_blank");
+//     };
+
+//     return (
+//         <div>
+//             <h1>Download and View Files</h1>
+//             <br />
+//             <button onClick={downloadCSV}>Download CSV</button>
+//             <br />
+//             <button onClick={downloadExcel}>Download Excel</button>
+//             <br />
+//             <button onClick={downloadPDF}>Download PDF</button>
+//             <br />
+//             <button onClick={viewPDF}>View PDF</button>
+//         </div>
+//     );
+// };
+
+// export default DownloadFiles;
