@@ -52,7 +52,6 @@ const Login = () => {
                 idToken,
             });
 
-            console.log(response.data);
 
             localStorage.setItem("accessToken", response.data.accessToken);
             localStorage.setItem("uid", response.data.uid);
