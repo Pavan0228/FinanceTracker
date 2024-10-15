@@ -88,7 +88,9 @@ const DownloadFiles = () => {
     };
 
     return (
-        <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg">
+        <div className="w-screen min-h-screen h-auto   bg-gray-800">
+
+        <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg ">
             <h1 className="text-3xl font-bold mb-6 text-gray-800">Download and View Files</h1>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <button
@@ -101,19 +103,20 @@ const DownloadFiles = () => {
                 <button
                     onClick={downloadPDF}
                     className="flex items-center justify-center p-4 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-300"
-                >
+                    >
                     <Download className="mr-2" />
                     Download PDF
                 </button>
                 <button
                     onClick={viewPDF}
                     className="flex items-center justify-center p-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-300"
-                >
+                    >
                     <Eye className="mr-2" />
                     View PDF
                 </button>
             </div>
         </div>
+                    </div>
     );
 };
 
