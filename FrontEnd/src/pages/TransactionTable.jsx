@@ -81,7 +81,7 @@ const TransactionTable = () => {
             return "Invalid Date";
         }
         
-        return `${month}/${day}/${year}`;
+        return `${day}/${month}/${year}`;
     };
 
     const formatAmount = (amount) => {

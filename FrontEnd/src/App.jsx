@@ -29,7 +29,7 @@ function App() {
             <Route path="/download" element={<ProtectedRoute element={<DownloadCSV />} />} />  
             <Route path="/Help" element={<ProtectedRoute element={<HelpPage />} />} />  
 
-            <Route path="/transaction-table" element={<ProtectedRoute element={<TransactionTable />} />} />  
+            <Route path="/Daily" element={<ProtectedRoute element={<TransactionTable />} />} />  
           </Routes>
         </div>
       </div>

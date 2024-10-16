@@ -7,26 +7,50 @@ const initialState = {
     loading: false,
     error: null,
     token: localStorage.getItem("accessToken") || null,
+    userId: localStorage.getItem("uid"),
 };
 
 export const login = createAsyncThunk(
     "auth/login",
-    async ({idToken}, { rejectWithValue }) => {
+    async ({ idToken }, { rejectWithValue }) => {
         try {
-            const response = await axios.post("http://localhost:3000/api/auth/login", {
-                idToken,
-            });
+            const response = await axios.post(
+                "http://localhost:3000/api/auth/login",
+                {
+                    idToken,
+                }
+            );
 
-            const { accessToken } = response.data;
+            const { accessToken, uid } = response.data;
 
             localStorage.setItem("accessToken", accessToken);
-            localStorage.setItem("uid", response.data.uid);
+            localStorage.setItem("uid", uid);
 
-            return { accessToken };
+            return { accessToken, uid };
         } catch (error) {
             console.log("Login error", error);
             toast.error(error.response?.data?.message || "Login failed!");
-            return rejectWithValue(error.response?.data?.message || "Login failed!");
+            return rejectWithValue(
+                error.response?.data?.message || "Login failed!"
+            );
+        }
+    }
+);
+
+export const getUser = createAsyncThunk(
+    "auth/getUser",
+    async (_, { getState, rejectWithValue }) => {
+        const { userId } = getState().auth; // Access userId from state
+        try {
+            const response = await axios.get(
+                `http://localhost:3000/api/auth/${userId}`
+            ); // Use userId in the API call
+            return response.data; // Return the user data
+        } catch (error) {
+            console.log("Get user error", error);
+            return rejectWithValue(
+                error.response?.data?.message || "Get user failed!"
+            );
         }
     }
 );
@@ -46,6 +70,7 @@ const authSlice = createSlice({
                 state.loading = false;
                 state.user = action.payload.user;
                 state.token = action.payload.accessToken;
+                state.userId = action.payload.uid; // Storing uid
                 toast.success("Login successful!");
             })
             .addCase(login.rejected, (state, action) => {

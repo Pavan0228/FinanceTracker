@@ -226,14 +226,14 @@ const FinanceDashboard = () => {
     };
 
     const handleClick = () => {
-        navigate('/transaction-table', { state: { dailyDebitAndCredit } });
+        navigate('/daily', { state: { dailyDebitAndCredit } });
     };
 
     return (
         <div className="bg-gray-900 text-white p-4 sm:p-6 rounded-lg min-h-screen">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
                 <div>
-                    <h1 className="text-xl sm:text-2xl font-bold">FinSense</h1>
+                    <h1 className="text-xl sm:text-2xl font-bold">PennyWise</h1>
                 </div>
                 <div className="flex flex-wrap items-center space-x-2 sm:space-x-4">
                     <select
@@ -257,7 +257,7 @@ const FinanceDashboard = () => {
                         />
                         {showText && (
                             <div className="absolute right-0 mt-2 py-2 px-4 bg-gray-800 text-white text-xs sm:text-sm rounded-md shadow-lg z-10 whitespace-nowrap transition-opacity duration-200 opacity-100">
-                                Download as CSV
+                                Download as Excel
                             </div>
                         )}
                     </div>
