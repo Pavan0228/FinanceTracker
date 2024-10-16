@@ -1,5 +1,4 @@
 /* eslint-disable no-unused-vars */
-import axios from "axios";
 import React, { useState } from "react";
 // Firebase v9 modular imports
 import { initializeApp } from "firebase/app";
@@ -7,6 +6,8 @@ import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { ToastContainer, toast } from 'react-toastify'; // Import ToastContainer and toast
 import 'react-toastify/dist/ReactToastify.css'; // Import CSS for toast notifications
 import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { login } from "../store/authSlice";
+import { useDispatch } from "react-redux";
 
 const Login = () => {
     const [formData, setFormData] = useState({
@@ -14,6 +15,7 @@ const Login = () => {
         password: "",
     });
 
+    const dispatch = useDispatch(); 
     const navigate = useNavigate(); // Initialize useNavigate
 
     const handleChange = (e) => {
@@ -32,7 +34,7 @@ const Login = () => {
         measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
     };
 
-    // Initialize Firebase app (run only once)
+        // Initialize Firebase app (run only once)
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
@@ -43,30 +45,20 @@ const Login = () => {
         try {
             // Sign in with Firebase Authentication
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
-
+            
             // Get the Firebase ID token
             const idToken = await userCredential.user.getIdToken();
 
-            // Send the ID token to your backend for verification
-            const response = await axios.post("http://localhost:3000/api/auth/login", {
-                idToken,
-            });
+            // Dispatch login action to Redux
+            dispatch(login({ idToken }));
 
-
-            localStorage.setItem("accessToken", response.data.accessToken);
-            localStorage.setItem("uid", response.data.uid);
-
-            // Show success notification
-            toast.success("Login successful!");
-
-            // Navigate to the dashboard after successful login
             setTimeout(() => {
                 navigate("/dashboard");
             }, 1500); // Change to your dashboard route
 
         } catch (error) {
             console.error("Login failed:", error);
-            const errorMessage = error.response?.data?.message || "Login failed. Please try again.";
+            const errorMessage = error.response?.data?.message || "please enter a valid credentials";
             // Show error notification with message from backend or a default message
             toast.error(errorMessage);
         }
@@ -75,19 +67,14 @@ const Login = () => {
     return (
         <div className="min-h-screen bg-zinc-900 flex items-center justify-center px-4 py-8">
             <div className="bg-zinc-800 p-8 rounded-lg shadow-md w-full max-w-md">
-                <h2 className="text-3xl font-bold text-zinc-100 mb-6 text-center">
-                    Login
-                </h2>
-                <form onSubmit={handleSubmit}> {/* Change the button type to submit */}
+                <h2 className="text-3xl font-bold text-zinc-100 mb-6 text-center">Login</h2>
+                <form onSubmit={handleSubmit}>
                     <div className="mb-4">
-                        <label
-                            className="block text-zinc-400 text-sm font-semibold mb-2"
-                            htmlFor="email"
-                        >
+                        <label className="block text-zinc-400 text-sm font-semibold mb-2" htmlFor="email">
                             Email
                         </label>
                         <input
-                            type="email"  // Corrected type from text to email
+                            type="email"
                             id="email"
                             name="email"
                             value={formData.email}
@@ -97,14 +84,11 @@ const Login = () => {
                         />
                     </div>
                     <div className="mb-4">
-                        <label
-                            className="block text-zinc-400 text-sm font-semibold mb-2"
-                            htmlFor="password"
-                        >
+                        <label className="block text-zinc-400 text-sm font-semibold mb-2" htmlFor="password">
                             Password
                         </label>
                         <input
-                            type="password"  // Secure the password field
+                            type="password"
                             id="password"
                             name="password"
                             value={formData.password}
@@ -114,14 +98,14 @@ const Login = () => {
                         />
                     </div>
                     <button
-                        type="submit" // Changed to type "submit"
+                        type="submit"
                         className="w-full py-2 bg-blue-600 text-white font-semibold rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                         Login
                     </button>
                 </form>
             </div>
-            <ToastContainer /> {/* Add ToastContainer for notifications */}
+            <ToastContainer />
         </div>
     );
 };

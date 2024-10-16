@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell } from 'recharts';
 import { Bell, Clock, Clock10, CreditCard, FileSpreadsheet, PowerOffIcon, User } from 'lucide-react';
 import axios from 'axios';
+import { fetchDailyTransactions, fetchMonthlyDebitCredit, fetchMonthlySummary, fetchTotalAmounts } from '../store/expensesSlice';
+import { useDispatch } from 'react-redux';
 
 // Custom Card components
 const Card = ({ className, children }) => (
@@ -30,6 +32,7 @@ const FinanceDashboard = () => {
     const COLORS = ['#FF8042', '#00C49F', '#FFBB28', '#0088FE'];
 
     const userId = localStorage.getItem('uid');
+    const dispatch = useDispatch();
 
     useEffect(() => {
         const fetchData = async () => {
@@ -44,23 +47,25 @@ const FinanceDashboard = () => {
                 const currentYear = currentDate.getFullYear();
 
                 const [monthlyResponse, totalResponse, monthlyDebitResponse, dailyResponse] = await Promise.all([
-                    axios.get(`http://localhost:3000/api/expense/allMonthSummary/${userId}/2024`),
-                    axios.get(`http://localhost:3000/api/expense/${userId}/total`),
-                    axios.get(`http://localhost:3000/api/expense/${userId}/monthlyDebitCredit/${currentMonth}/${currentYear}`),
-                    axios.get(`http://localhost:3000/api/expense/${userId}/monthly/messages/${currentMonth}/${currentYear}`),
+                    dispatch(fetchMonthlySummary(userId)).unwrap(),
+                    dispatch(fetchTotalAmounts(userId)).unwrap(),
+                    dispatch(fetchMonthlyDebitCredit({ userId, currentMonth, currentYear })).unwrap(),
+                    dispatch(fetchDailyTransactions({ userId, currentMonth, currentYear })).unwrap(),
                 ]);
 
-                const processedData = processMonthlyData(monthlyResponse.data);
+
+                // Process data and update local state (if needed)
+                const processedData = processMonthlyData(monthlyResponse);
                 setMonthlyData(processedData);
                 setTotalAmounts({
-                    totalDebit: totalResponse.data.totalDebit,
-                    totalCredit: totalResponse.data.totalCredit
+                    totalDebit: totalResponse.totalDebit,
+                    totalCredit: totalResponse.totalCredit
                 });
-                setMonthlyDebit(monthlyDebitResponse.data.data.totalDebit);
-                setMonthlyCredit(monthlyDebitResponse.data.data.totalCredit);
+                setMonthlyDebit(monthlyDebitResponse.data.totalDebit);
+                setMonthlyCredit(monthlyDebitResponse.data.totalCredit);
 
                 // Process daily transactions
-                const dailyTransactions = dailyResponse.data.monthlyMessages;
+                const dailyTransactions = dailyResponse.monthlyMessages;
 
                 // Process debit transactions
                 const debitTransactions = processTransactions(dailyTransactions, "Debited");
@@ -76,7 +81,7 @@ const FinanceDashboard = () => {
         };
 
         fetchData();
-    }, [userId]);
+    }, [dispatch, userId]);
 
     const processTransactions = (transactions, type) => {
         const filteredTransactions = transactions
