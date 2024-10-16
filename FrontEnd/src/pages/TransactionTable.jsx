@@ -9,7 +9,8 @@ const TransactionTable = () => {
     const [filter, setFilter] = useState("all");
 
     const location = useLocation();
-    const dailyTransactions = location?.state?.dailyDebitAndCredit; 
+    const dailyTransactions = location?.state?.dailyDebitAndCredit;
+    console.log(dailyTransactions)
 
 
     const handleSort = (field) => {
@@ -36,10 +37,15 @@ const TransactionTable = () => {
     );
 
     const formatDate = (dateString) => {
-        const date = new Date(dateString);
-        const year = date.getFullYear();
-        const month = date.getMonth() + 1; 
-        const day = date.getDate();
+        const [datePart, timePart] = dateString.split(' ');
+        const [day, month, year] = datePart.split('/');
+        const date = new Date(`${year}-${month}-${day}T${timePart}`);
+
+        if (isNaN(date.getTime())) {
+            console.error(`Invalid date: ${dateString}`);
+            return "Invalid Date";
+        }
+
         return `${month}/${day}/${year}`;
     };
 
@@ -59,31 +65,28 @@ const TransactionTable = () => {
                 <div className="flex gap-2">
                     <button
                         onClick={() => setFilter("all")}
-                        className={`px-4 py-2 rounded-md ${
-                            filter === "all"
+                        className={`px-4 py-2 rounded-md ${filter === "all"
                                 ? "bg-blue-600 text-white"
                                 : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                        }`}
+                            }`}
                     >
                         All
                     </button>
                     <button
                         onClick={() => setFilter("Credited")}
-                        className={`px-4 py-2 rounded-md ${
-                            filter === "Credited"
+                        className={`px-4 py-2 rounded-md ${filter === "Credited"
                                 ? "bg-green-600 text-white"
                                 : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                        }`}
+                            }`}
                     >
                         Credited
                     </button>
                     <button
                         onClick={() => setFilter("Debited")}
-                        className={`px-4 py-2 rounded-md ${
-                            filter === "Debited"
+                        className={`px-4 py-2 rounded-md ${filter === "Debited"
                                 ? "bg-red-600 text-white"
                                 : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                        }`}
+                            }`}
                     >
                         Debited
                     </button>
@@ -127,7 +130,7 @@ const TransactionTable = () => {
                                         <ArrowUpDown className="w-4 h-4" />
                                     )}
                                 </div>
-                            </th>     
+                            </th>
                             <th
                                 className="px-4 py-3 text-left cursor-pointer hover:bg-gray-700"
                                 onClick={() => handleSort("type")}
@@ -157,21 +160,19 @@ const TransactionTable = () => {
                                     {formatDate(transaction.date)}
                                 </td>
                                 <td
-                                    className={`px-4 py-3 font-medium ${
-                                        transaction.type === "Credited"
+                                    className={`px-4 py-3 font-medium ${transaction.type === "Credited"
                                             ? "text-green-400"
                                             : "text-red-400"
-                                    }`}
+                                        }`}
                                 >
                                     {formatAmount(transaction.amount)}
                                 </td>
                                 <td className="px-4 py-3">
                                     <span
-                                        className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                            transaction.type === "Credited"
+                                        className={`px-2 py-1 rounded-full text-xs font-medium ${transaction.type === "Credited"
                                                 ? "bg-green-900 text-green-300"
                                                 : "bg-red-900 text-red-300"
-                                        }`}
+                                            }`}
                                     >
                                         {transaction.type}
                                     </span>
