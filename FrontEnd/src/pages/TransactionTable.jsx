@@ -1,15 +1,45 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { ArrowUpDown, ArrowDown, ArrowUp } from "lucide-react";
 import { useLocation } from 'react-router-dom';
+import { fetchDailyTransactions } from "../store/expensesSlice";
+import { useDispatch } from "react-redux";
 
 
 const TransactionTable = () => {
     const [sortField, setSortField] = useState("date");
     const [sortDirection, setSortDirection] = useState("desc");
     const [filter, setFilter] = useState("all");
+    const [dailyTransactions, setDailyTransactions] = useState(null);
 
     const location = useLocation();
-    const dailyTransactions = location?.state?.dailyDebitAndCredit;
+    const dispatch = useDispatch();
+
+    useEffect(() => {
+        if (location?.state?.dailyDebitAndCredit) {
+            setDailyTransactions(location.state.dailyDebitAndCredit);
+        }
+    }, [location.state]);
+
+    const userId = localStorage.getItem('uid');
+
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth() + 1;
+    const currentYear = currentDate.getFullYear();
+
+    
+    useEffect(() => {
+        if (!dailyTransactions) {
+            const fetchTransactions = async () => {
+                try {
+                    const dailyResponse = await dispatch(fetchDailyTransactions({ userId, currentMonth, currentYear })).unwrap();
+                    setDailyTransactions(dailyResponse.monthlyMessages)              
+                } catch (error) {
+                    console.error('Failed to fetch daily transactions:', error);
+                }
+            };
+            fetchTransactions();
+        }
+    }, [dailyTransactions, userId, currentMonth, currentYear, dispatch]);
 
     const handleSort = (field) => {
         if (sortField === field) {
