@@ -57,7 +57,7 @@ const TransactionTable = () => {
     const formatAmount = (amount) => {
         return new Intl.NumberFormat("en-US", {
             style: "currency",
-            currency: "USD",
+            currency: "INR",
         }).format(parseFloat(amount));
     };
 
