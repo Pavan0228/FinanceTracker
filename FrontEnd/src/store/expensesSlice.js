@@ -56,6 +56,7 @@ export const fetchDailyTransactions = createAsyncThunk(
             const response = await axios.get(
                 `http://localhost:3000/api/expense/${userId}/monthly/messages/${currentMonth}/${currentYear}`
             );
+            console.log(response.data)
             return response.data;
         } catch (error) {
             return rejectWithValue(

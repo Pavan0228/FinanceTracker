@@ -43,7 +43,7 @@ const FinanceDashboard = () => {
                 }
 
                 const currentDate = new Date();
-                const currentMonth = currentDate.getMonth() + 1; // JavaScript months are 0-indexed
+                const currentMonth = currentDate.getMonth() + 1;
                 const currentYear = currentDate.getFullYear();
 
                 const [monthlyResponse, totalResponse, monthlyDebitResponse, dailyResponse] = await Promise.all([
@@ -53,8 +53,6 @@ const FinanceDashboard = () => {
                     dispatch(fetchDailyTransactions({ userId, currentMonth, currentYear })).unwrap(),
                 ]);
 
-
-                // Process data and update local state (if needed)
                 const processedData = processMonthlyData(monthlyResponse);
                 setMonthlyData(processedData);
                 setTotalAmounts({
@@ -64,14 +62,11 @@ const FinanceDashboard = () => {
                 setMonthlyDebit(monthlyDebitResponse.data.totalDebit);
                 setMonthlyCredit(monthlyDebitResponse.data.totalCredit);
 
-                // Process daily transactions
                 const dailyTransactions = dailyResponse.monthlyMessages;
 
-                // Process debit transactions
                 const debitTransactions = processTransactions(dailyTransactions, "Debited");
                 setDailyDebit(debitTransactions);
 
-                // Process credit transactions
                 const creditTransactions = processTransactions(dailyTransactions, "Credited");
                 setDailyCredit(creditTransactions);
 
@@ -86,12 +81,16 @@ const FinanceDashboard = () => {
     const processTransactions = (transactions, type) => {
         const filteredTransactions = transactions
             .filter(transaction => transaction.type === type)
-            .map(transaction => ({
-                date: new Date(transaction.date).toLocaleDateString(),
-                amount: parseFloat(transaction.amount)
-            }));
+            .map(transaction => {
+                const [datePart, timePart] = transaction.date.split(' ');
+                const [day, month, year] = datePart.split('/');
+                const formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+                return {
+                    date: formattedDate,
+                    amount: parseFloat(transaction.amount)
+                };
+            });
 
-        // Group transactions by date and sum amounts
         const groupedTransactions = filteredTransactions.reduce((acc, transaction) => {
             if (!acc[transaction.date]) {
                 acc[transaction.date] = 0;
@@ -100,7 +99,6 @@ const FinanceDashboard = () => {
             return acc;
         }, {});
 
-        // Convert to array format for LineChart and sort by date
         return Object.entries(groupedTransactions)
             .map(([date, amount]) => ({ date, amount }))
             .sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -129,11 +127,17 @@ const FinanceDashboard = () => {
     }
 
 
-        const CustomDailyTool = ({ active, payload, label }) => {
+    const CustomDailyTool = ({ active, payload, label }) => {
         if (active && payload && payload.length) {
+            const date = new Date(label);
+            const formattedDate = date.toLocaleDateString('en-GB', { 
+                day: '2-digit', 
+                month: '2-digit', 
+                year: 'numeric' 
+            });
             return (
                 <div className="bg-gray-800 text-white p-2 rounded">
-                    <p>Date: {label}</p>
+                    <p>Date: {formattedDate}</p>
                     <p>Amount: ₹{payload[0].value.toFixed(2)}</p>
                 </div>
             );
@@ -141,134 +145,134 @@ const FinanceDashboard = () => {
         return null;
     };
 
-    return (
-        <div className="bg-gray-900 text-white p-4 sm:p-6 rounded-lg min-h-screen">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
-                <div>
-                    <h1 className="text-xl sm:text-2xl font-bold">Available Balance</h1>
-                    <p className="text-3xl sm:text-4xl font-bold text-green-400">₹14,822</p>
-                </div>
-                <div className="flex flex-wrap items-center space-x-2 sm:space-x-4">
-                    <Clock10 className="w-5 h-5 sm:w-6 sm:h-6" />
-                    <p className="text-xs sm:text-sm hover:text-green-300">{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                    <div className="relative">
-                        <FileSpreadsheet
-                            size={20}
-                            className="cursor-pointer hover:text-green-400 transition-colors duration-200"
-                            onMouseEnter={() => setShowText(true)}
-                            onMouseLeave={() => setShowText(false)}
-                        />
-                        {showText && (
-                            <div className="absolute right-0 mt-2 py-2 px-4 bg-gray-800 text-white text-xs sm:text-sm rounded-md shadow-lg z-10 whitespace-nowrap transition-opacity duration-200 opacity-100">
-                                Download as CSV
-                            </div>
-                        )}
-                    </div>
-                    <User size={20} className='hover:text-green-400' />
-                    <div onClick={handleLogout} className="relative">
-                        <PowerOffIcon className='hover:text-red-600' size={20}
-                            onMouseEnter={() => setShowLogout(true)}
-                            onMouseLeave={() => setShowLogout(false)}
-                        />
-                        {showLogout && (
-                            <div className="absolute right-0 mt-2 py-2 px-4 bg-gray-800 text-white text-xs sm:text-sm rounded-md shadow-lg z-10 whitespace-nowrap transition-opacity duration-200 opacity-100">
-                                Logout
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                <Card className="bg-orange-500 col-span-1 sm:col-span-2 lg:col-span-1">
-                    <CardContent>
-                        <h2 className="text-lg sm:text-xl font-bold mb-2">Total Spendings</h2>
-                        <p className="text-2xl sm:text-3xl font-bold">₹{totalAmounts.totalDebit.toLocaleString()}</p>
-                    </CardContent>
-                    <CardContent>
-                        <h2 className="text-lg sm:text-xl font-bold mb-2">Total Earnings</h2>
-                        <p className="text-2xl sm:text-3xl font-bold">₹{totalAmounts.totalCredit.toLocaleString()}</p>
-                    </CardContent>
-                </Card>
-
-                <Card className="bg-gray-800 col-span-1">
-                    <CardHeader>Daily Debit</CardHeader>
-                    <CardContent>
-                        <ResponsiveContainer width="100%" height={100}>
-                            <LineChart data={dailyDebit}>
-                                <XAxis dataKey="date" hide />
-                                <YAxis hide />
-                                <Tooltip content={<CustomDailyTool />} />
-                                <Line type="monotone" dataKey="amount" stroke="#FF8042" strokeWidth={2} />
-                            </LineChart>
-                        </ResponsiveContainer>
-                    </CardContent>
-                </Card>
-
-                <Card className="bg-gray-800 col-span-1">
-                    <CardHeader>Daily Credit</CardHeader>
-                    <CardContent>
-                        <ResponsiveContainer width="100%" height={100}>
-                            <LineChart data={dailyCredit}>
-                                <XAxis dataKey="date" hide />
-                                <YAxis hide />
-                                <Tooltip content={<CustomDailyTool />} />
-                                <Line type="monotone" dataKey="amount" stroke="#00C49F" strokeWidth={2} />
-                            </LineChart>
-                        </ResponsiveContainer>
-                    </CardContent>
-                </Card>
-
-
-                <Card className="bg-gray-800 col-span-1 sm:col-span-2">
-                    <CardHeader>All Year Income & Expenses</CardHeader>
-                    <CardContent>
-                        <ResponsiveContainer width="100%" height={300}>
-                            <LineChart data={monthlyData}>
-                                <XAxis dataKey="name" />
-                                <YAxis />
-                                <Tooltip />
-                                <Legend />
-                                <Line type="monotone" dataKey="income" name="Income" stroke="#00C49F" strokeWidth={2} />
-                                <Line type="monotone" dataKey="expenses" name="Expenses" stroke="#FF8042" strokeWidth={2} />
-                            </LineChart>
-                        </ResponsiveContainer>
-                    </CardContent>
-                </Card>
-
-                <Card className="bg-gray-800 col-span-1">
-                    <CardHeader>Monthly Spending</CardHeader>
-                    <CardContent>
-                        <ResponsiveContainer width="100%" height={250}>
-                            <PieChart>
-                                <Pie
-                                    data={getMonthlyDebitData()}
-                                    cx="50%"
-                                    cy="50%"
-                                    outerRadius={70}
-                                    fill="#8884d8"
-                                    dataKey="value"
-                                    label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
-                                >
-                                    {getMonthlyDebitData().map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                    ))}
-                                </Pie>
-                                <Tooltip />
-                                <Legend />
-                            </PieChart>
-                        </ResponsiveContainer>
-                        <div className="text-center mt-2 text-sm sm:text-base">
-                            <p>Monthly Limit: ₹{MONTHLY_LIMIT.toLocaleString()}</p>
-                            <p>Spent: <span className="text-red-500">₹{monthlyDebit.toLocaleString()}</span></p>
-                            <p>Remaining: ₹{Math.max(MONTHLY_LIMIT - monthlyDebit, 0).toLocaleString()}</p>
-                            <p>Credited: <span className="text-green-500">₹{monthlyCredit.toLocaleString()}</span></p>
+            return (
+                <div className="bg-gray-900 text-white p-4 sm:p-6 rounded-lg min-h-screen">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
+                        <div>
+                            <h1 className="text-xl sm:text-2xl font-bold">Available Balance</h1>
+                            <p className="text-3xl sm:text-4xl font-bold text-green-400">₹14,822</p>
                         </div>
-                    </CardContent>
-                </Card>
-            </div>
-        </div>
-    );
-};
+                        <div className="flex flex-wrap items-center space-x-2 sm:space-x-4">
+                            <Clock10 className="w-5 h-5 sm:w-6 sm:h-6" />
+                            <p className="text-xs sm:text-sm hover:text-green-300">{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                            <div className="relative">
+                                <FileSpreadsheet
+                                    size={20}
+                                    className="cursor-pointer hover:text-green-400 transition-colors duration-200"
+                                    onMouseEnter={() => setShowText(true)}
+                                    onMouseLeave={() => setShowText(false)}
+                                />
+                                {showText && (
+                                    <div className="absolute right-0 mt-2 py-2 px-4 bg-gray-800 text-white text-xs sm:text-sm rounded-md shadow-lg z-10 whitespace-nowrap transition-opacity duration-200 opacity-100">
+                                        Download as CSV
+                                    </div>
+                                )}
+                            </div>
+                            <User size={20} className='hover:text-green-400' />
+                            <div onClick={handleLogout} className="relative">
+                                <PowerOffIcon className='hover:text-red-600' size={20}
+                                    onMouseEnter={() => setShowLogout(true)}
+                                    onMouseLeave={() => setShowLogout(false)}
+                                />
+                                {showLogout && (
+                                    <div className="absolute right-0 mt-2 py-2 px-4 bg-gray-800 text-white text-xs sm:text-sm rounded-md shadow-lg z-10 whitespace-nowrap transition-opacity duration-200 opacity-100">
+                                        Logout
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
 
-export default FinanceDashboard;
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                        <Card className="bg-orange-500 col-span-1 sm:col-span-2 lg:col-span-1">
+                            <CardContent>
+                                <h2 className="text-lg sm:text-xl font-bold mb-2">Total Spendings</h2>
+                                <p className="text-2xl sm:text-3xl font-bold">₹{totalAmounts.totalDebit.toLocaleString()}</p>
+                            </CardContent>
+                            <CardContent>
+                                <h2 className="text-lg sm:text-xl font-bold mb-2">Total Earnings</h2>
+                                <p className="text-2xl sm:text-3xl font-bold">₹{totalAmounts.totalCredit.toLocaleString()}</p>
+                            </CardContent>
+                        </Card>
+
+                        <Card className="bg-gray-800 col-span-1">
+                            <CardHeader>Daily Debit</CardHeader>
+                            <CardContent>
+                                <ResponsiveContainer width="100%" height={100}>
+                                    <LineChart data={dailyDebit}>
+                                        <XAxis dataKey="date" hide />
+                                        <YAxis hide />
+                                        <Tooltip content={<CustomDailyTool />} />
+                                        <Line type="monotone" dataKey="amount" stroke="#FF8042" strokeWidth={2} />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            </CardContent>
+                        </Card>
+
+                        <Card className="bg-gray-800 col-span-1">
+                            <CardHeader>Daily Credit</CardHeader>
+                            <CardContent>
+                                <ResponsiveContainer width="100%" height={100}>
+                                    <LineChart data={dailyCredit}>
+                                        <XAxis dataKey="date" hide />
+                                        <YAxis hide />
+                                        <Tooltip content={<CustomDailyTool />} />
+                                        <Line type="monotone" dataKey="amount" stroke="#00C49F" strokeWidth={2} />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            </CardContent>
+                        </Card>
+
+
+                        <Card className="bg-gray-800 col-span-1 sm:col-span-2">
+                            <CardHeader>All Year Income & Expenses</CardHeader>
+                            <CardContent>
+                                <ResponsiveContainer width="100%" height={300}>
+                                    <LineChart data={monthlyData}>
+                                        <XAxis dataKey="name" />
+                                        <YAxis />
+                                        <Tooltip />
+                                        <Legend />
+                                        <Line type="monotone" dataKey="income" name="Income" stroke="#00C49F" strokeWidth={2} />
+                                        <Line type="monotone" dataKey="expenses" name="Expenses" stroke="#FF8042" strokeWidth={2} />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            </CardContent>
+                        </Card>
+
+                        <Card className="bg-gray-800 col-span-1">
+                            <CardHeader>Monthly Spending</CardHeader>
+                            <CardContent>
+                                <ResponsiveContainer width="100%" height={250}>
+                                    <PieChart>
+                                        <Pie
+                                            data={getMonthlyDebitData()}
+                                            cx="50%"
+                                            cy="50%"
+                                            outerRadius={70}
+                                            fill="#8884d8"
+                                            dataKey="value"
+                                            label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                                        >
+                                            {getMonthlyDebitData().map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip />
+                                        <Legend />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                                <div className="text-center mt-2 text-sm sm:text-base">
+                                    <p>Monthly Limit: ₹{MONTHLY_LIMIT.toLocaleString()}</p>
+                                    <p>Spent: <span className="text-red-500">₹{monthlyDebit.toLocaleString()}</span></p>
+                                    <p>Remaining: ₹{Math.max(MONTHLY_LIMIT - monthlyDebit, 0).toLocaleString()}</p>
+                                    <p>Credited: <span className="text-green-500">₹{monthlyCredit.toLocaleString()}</span></p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
+            );
+        };
+
+        export default FinanceDashboard;

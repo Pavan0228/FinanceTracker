@@ -206,7 +206,9 @@ export async function getUserMonthlyMessagesById(userId, monthYear) {
 
             // Sort the messages by date (descending)
             decryptedMessages.sort(
-                (a, b) => new Date(b.date) - new Date(a.date)
+
+                (a, b) => new Date(a.date) - new Date(b.date)
+                //console.log the date
             );
 
             return decryptedMessages;
