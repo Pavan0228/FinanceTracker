@@ -2,9 +2,10 @@ import React, { useEffect, useState } from "react";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-import { Download, FileSpreadsheet, Eye, Calendar } from "lucide-react";
+import { Download, FileSpreadsheet, Eye, Calendar , Loader } from "lucide-react";
 import {
     fetchDailyTransactions,
+    getYearlyMessages,
 } from "../store/expensesSlice";
 import { useDispatch } from "react-redux";
 
@@ -13,6 +14,7 @@ const DownloadFiles = () => {
     const [totals, setTotals] = useState({ credited: 0, debited: 0 });
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+    const [isLoading, setIsLoading] = useState(false);
 
     const userId = localStorage.getItem("uid");
     const dispatch = useDispatch();
@@ -21,16 +23,31 @@ const DownloadFiles = () => {
         fetchMonthlyMessages();
     }, [userId, dispatch, selectedMonth, selectedYear]);
 
+    const fetchDailyData = async () => {
+        const dailyResponse = await dispatch(
+            fetchDailyTransactions({
+                userId,
+                currentMonth: selectedMonth,
+                currentYear: selectedYear,
+            })
+        ).unwrap();
+        return dailyResponse.monthlyMessages;
+    }
+
+    const fetchYearlyData = async () => {
+        const yearlyResponse = await dispatch(
+            getYearlyMessages({
+                userId,
+                year: selectedYear,
+            })
+        ).unwrap();
+        return yearlyResponse.data;
+    }
+
     const fetchMonthlyMessages = async () => {
+        setIsLoading(true);
         try {
-            const dailyResponse = await dispatch(
-                fetchDailyTransactions({
-                    userId,
-                    currentMonth: selectedMonth,
-                    currentYear: selectedYear,
-                })
-            ).unwrap();
-            const messages = dailyResponse.monthlyMessages;
+            const messages = await fetchDailyData();
 
             let creditedTotal = 0;
             let debitedTotal = 0;
@@ -46,6 +63,8 @@ const DownloadFiles = () => {
             setTotals({ credited: creditedTotal, debited: debitedTotal });
         } catch (error) {
             console.error("Error fetching monthly messages:", error);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -53,11 +72,23 @@ const DownloadFiles = () => {
         return dateString.split(" ")[0];
     };
 
-    const downloadExcel = (data, filename) => {
-        const worksheet = XLSX.utils.json_to_sheet(data);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Transactions");
-        XLSX.writeFile(workbook, filename);
+    const downloadExcel = async (isYearly = false) => {
+        setIsLoading(true);
+        try {
+            const data = isYearly ? await fetchYearlyData() : jsonData;
+            const filename = isYearly 
+                ? `yearly_transactions_${selectedYear}.xlsx`
+                : `transactions_${selectedMonth}_${selectedYear}.xlsx`;
+            
+            const worksheet = XLSX.utils.json_to_sheet(data);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Transactions");
+            XLSX.writeFile(workbook, filename);
+        } catch (error) {
+            console.error("Error downloading Excel:", error);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const generatePDF = (data, title) => {
@@ -74,14 +105,41 @@ const DownloadFiles = () => {
         return doc;
     };
 
-    const downloadPDF = (data, filename, title) => {
-        const doc = generatePDF(data, title);
-        doc.save(filename);
+    const downloadPDF = async (isYearly = false) => {
+        setIsLoading(true);
+        try {
+            const data = isYearly ? await fetchYearlyData() : jsonData;
+            const filename = isYearly 
+                ? `yearly_transactions_${selectedYear}.pdf`
+                : `transactions_${selectedMonth}_${selectedYear}.pdf`;
+            const title = isYearly
+                ? `Yearly Transactions for ${selectedYear}`
+                : `Transactions for ${new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'long' })} ${selectedYear}`;
+            
+            const doc = generatePDF(data, title);
+            doc.save(filename);
+        } catch (error) {
+            console.error("Error downloading PDF:", error);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    const viewPDF = (data, title) => {
-        const doc = generatePDF(data, title);
-        window.open(doc.output("bloburl"), "_blank");
+    const viewPDF = async (isYearly = false) => {
+        setIsLoading(true);
+        try {
+            const data = isYearly ? await fetchYearlyData() : jsonData;
+            const title = isYearly
+                ? `Yearly Transactions for ${selectedYear}`
+                : `Transactions for ${new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'long' })} ${selectedYear}`;
+            
+            const doc = generatePDF(data, title);
+            window.open(doc.output("bloburl"), "_blank");
+        } catch (error) {
+            console.error("Error viewing PDF:", error);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleMonthChange = (e) => {
@@ -92,8 +150,18 @@ const DownloadFiles = () => {
         setSelectedYear(parseInt(e.target.value));
     };
 
+    const LoadingOverlay = () => (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-4 rounded-lg flex items-center">
+                <Loader className="animate-spin mr-2 text-blue-500" />
+                <span className="text-gray-800">Loading...</span>
+            </div>
+        </div>
+    );
+
     return (
         <div className="min-h-screen bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8">
+            {isLoading && <LoadingOverlay />}
             <div className="max-w-6xl mx-auto">
                 <h1 className="text-4xl font-bold mb-8 text-center">Financial Reports</h1>
                 
@@ -126,14 +194,14 @@ const DownloadFiles = () => {
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <button
-                                onClick={() => downloadExcel(jsonData, `transactions_${selectedMonth}_${selectedYear}.xlsx`)}
+                                onClick={() => downloadExcel(false)}
                                 className="flex items-center justify-center p-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-300"
                             >
                                 <FileSpreadsheet className="mr-2" />
                                 Download Excel
                             </button>
                             <button
-                                onClick={() => downloadPDF(jsonData, `transactions_${selectedMonth}_${selectedYear}.pdf`, `Transactions for ${new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'long' })} ${selectedYear}`)}
+                                onClick={() => downloadPDF(false)}
                                 className="flex items-center justify-center p-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-300"
                             >
                                 <Download className="mr-2" />
@@ -157,28 +225,43 @@ const DownloadFiles = () => {
                                 ))}
                             </select>
                         </div>
-                        <button
-                            onClick={() => {
-                                // Here you would fetch yearly data and then download
-                                alert('Yearly download functionality to be implemented');
-                            }}
-                            className="flex items-center justify-center w-full p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-300"
-                        >
-                            <Calendar className="mr-2" />
-                            Download Yearly Report
-                        </button>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <button
+                                onClick={() => downloadExcel(true)}
+                                className="flex items-center justify-center p-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-300"
+                            >
+                                <FileSpreadsheet className="mr-2" />
+                                Excel
+                            </button>
+                            <button
+                                onClick={() => downloadPDF(true)}
+                                className="flex items-center justify-center p-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-300"
+                            >
+                                <Download className="mr-2" />
+                                PDF
+                            </button>
+                        </div>
                     </div>
                 </div>
                 
                 <div className="mt-8 bg-gray-800 rounded-lg shadow-lg p-6">
-                    <h2 className="text-2xl font-semibold mb-4">View Current Report</h2>
-                    <button
-                        onClick={() => viewPDF(jsonData, `Transactions for ${new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'long' })} ${selectedYear}`)}
-                        className="flex items-center justify-center w-full p-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition duration-300"
-                    >
-                        <Eye className="mr-2" />
-                        View PDF
-                    </button>
+                    <h2 className="text-2xl font-semibold mb-4">View Reports</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <button
+                            onClick={() => viewPDF(false)}
+                            className="flex items-center justify-center w-full p-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition duration-300"
+                        >
+                            <Eye className="mr-2" />
+                            View Monthly PDF
+                        </button>
+                        <button
+                            onClick={() => viewPDF(true)}
+                            className="flex items-center justify-center w-full p-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition duration-300"
+                        >
+                            <Eye className="mr-2" />
+                            View Yearly PDF
+                        </button>
+                    </div>
                 </div>
                 
                 <div className="mt-8 bg-gray-800 rounded-lg shadow-lg p-6">
@@ -200,8 +283,6 @@ const DownloadFiles = () => {
 };
 
 export default DownloadFiles;
-
-
 
 
 

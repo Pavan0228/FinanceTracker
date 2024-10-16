@@ -65,6 +65,22 @@ export const fetchDailyTransactions = createAsyncThunk(
     }
 );
 
+export const getYearlyMessages = createAsyncThunk(
+    "expenses/getYearlyMessages",
+    async ({ userId, year }, { rejectWithValue }) => {
+        try {
+            const response = await axios.get(
+                `http://localhost:3000/api/expense/${userId}/messages/${year}`
+            );
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(
+                error.response?.data || "Failed to fetch yearly messages"
+            );
+        }
+    }
+) 
+
 const initialState = {
     monthlyData: null,
     totalAmounts: {
@@ -143,7 +159,20 @@ const expensesSlice = createSlice({
             .addCase(fetchDailyTransactions.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
+            })
+            // Yearly Messages
+            .addCase(getYearlyMessages.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(getYearlyMessages.fulfilled, (state, action) => {
+                state.loading = false;
+                state.yearlyMessages = action.payload.data;
+            })
+            .addCase(getYearlyMessages.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
             });
+
     },
 });
 
