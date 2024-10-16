@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { ArrowUpDown, ArrowDown, ArrowUp } from "lucide-react";
 import { useLocation } from 'react-router-dom';
 
@@ -10,8 +10,6 @@ const TransactionTable = () => {
 
     const location = useLocation();
     const dailyTransactions = location?.state?.dailyDebitAndCredit;
-    console.log(dailyTransactions)
-
 
     const handleSort = (field) => {
         if (sortField === field) {
@@ -22,22 +20,29 @@ const TransactionTable = () => {
         }
     };
 
-    const sortedTransactions = [...dailyTransactions].sort((a, b) => {
-        let comparison = 0;
-        if (sortField === "amount") {
-            comparison = parseFloat(a.amount) - parseFloat(b.amount);
-        } else {
-            comparison = a[sortField].localeCompare(b[sortField]);
-        }
-        return sortDirection === "asc" ? comparison : -comparison;
-    });
+    const filteredAndSortedTransactions = useMemo(() => {
+        if (!dailyTransactions) return [];
 
-    const filteredTransactions = sortedTransactions.filter(
-        (transaction) => filter === "all" || transaction.type === filter
-    );
+        // Sorting logic
+        const sortedTransactions = [...dailyTransactions].sort((a, b) => {
+            let comparison = 0;
+            if (sortField === "amount") {
+                comparison = parseFloat(a.amount) - parseFloat(b.amount);
+            } else {
+                comparison = a[sortField].localeCompare(b[sortField]);
+            }
+            return sortDirection === "asc" ? comparison : -comparison;
+        });
+
+        // Filtering logic
+        return sortedTransactions.filter(
+            (transaction) => filter === "all" || transaction.type === filter
+        );
+    }, [dailyTransactions, sortField, sortDirection, filter]);
 
     const formatDate = (dateString) => {
         const [datePart, timePart] = dateString.split(' ');
+    
         const [day, month, year] = datePart.split('/');
         const date = new Date(`${year}-${month}-${day}T${timePart}`);
 
@@ -45,7 +50,7 @@ const TransactionTable = () => {
             console.error(`Invalid date: ${dateString}`);
             return "Invalid Date";
         }
-
+        
         return `${month}/${day}/${year}`;
     };
 
@@ -63,33 +68,18 @@ const TransactionTable = () => {
                     Daily Transactions
                 </h2>
                 <div className="flex gap-2">
-                    <button
-                        onClick={() => setFilter("all")}
-                        className={`px-4 py-2 rounded-md ${filter === "all"
-                                ? "bg-blue-600 text-white"
+                    {["all", "Credited", "Debited"].map(type => (
+                        <button
+                            key={type}
+                            onClick={() => setFilter(type)}
+                            className={`px-4 py-2 rounded-md ${filter === type
+                                ? (type === "Credited" ? "bg-green-600" : type === "Debited" ? "bg-red-600" : "bg-blue-600")
                                 : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                            }`}
-                    >
-                        All
-                    </button>
-                    <button
-                        onClick={() => setFilter("Credited")}
-                        className={`px-4 py-2 rounded-md ${filter === "Credited"
-                                ? "bg-green-600 text-white"
-                                : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                            }`}
-                    >
-                        Credited
-                    </button>
-                    <button
-                        onClick={() => setFilter("Debited")}
-                        className={`px-4 py-2 rounded-md ${filter === "Debited"
-                                ? "bg-red-600 text-white"
-                                : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                            }`}
-                    >
-                        Debited
-                    </button>
+                                }`}
+                        >
+                            {type.charAt(0).toUpperCase() + type.slice(1)}
+                        </button>
+                    ))}
                 </div>
             </div>
 
@@ -97,61 +87,30 @@ const TransactionTable = () => {
                 <table className="w-full text-sm text-gray-200">
                     <thead className="bg-gray-800">
                         <tr>
-                            <th
-                                className="px-4 py-3 text-left cursor-pointer hover:bg-gray-700"
-                                onClick={() => handleSort("date")}
-                            >
-                                <div className="flex items-center gap-1">
-                                    Date
-                                    {sortField === "date" ? (
-                                        sortDirection === "asc" ? (
-                                            <ArrowUp className="w-4 h-4" />
+                            {["date", "amount", "type"].map(field => (
+                                <th
+                                    key={field}
+                                    className="px-4 py-3 text-left cursor-pointer hover:bg-gray-700"
+                                    onClick={() => handleSort(field)}
+                                >
+                                    <div className="flex items-center gap-1">
+                                        {field.charAt(0).toUpperCase() + field.slice(1)}
+                                        {sortField === field ? (
+                                            sortDirection === "asc" ? (
+                                                <ArrowUp className="w-4 h-4" />
+                                            ) : (
+                                                <ArrowDown className="w-4 h-4" />
+                                            )
                                         ) : (
-                                            <ArrowDown className="w-4 h-4" />
-                                        )
-                                    ) : (
-                                        <ArrowUpDown className="w-4 h-4" />
-                                    )}
-                                </div>
-                            </th>
-                            <th
-                                className="px-4 py-3 text-left cursor-pointer hover:bg-gray-700"
-                                onClick={() => handleSort("amount")}
-                            >
-                                <div className="flex items-center gap-1">
-                                    Amount
-                                    {sortField === "amount" ? (
-                                        sortDirection === "asc" ? (
-                                            <ArrowUp className="w-4 h-4" />
-                                        ) : (
-                                            <ArrowDown className="w-4 h-4" />
-                                        )
-                                    ) : (
-                                        <ArrowUpDown className="w-4 h-4" />
-                                    )}
-                                </div>
-                            </th>
-                            <th
-                                className="px-4 py-3 text-left cursor-pointer hover:bg-gray-700"
-                                onClick={() => handleSort("type")}
-                            >
-                                <div className="flex items-center gap-1">
-                                    Type
-                                    {sortField === "type" ? (
-                                        sortDirection === "asc" ? (
-                                            <ArrowUp className="w-4 h-4" />
-                                        ) : (
-                                            <ArrowDown className="w-4 h-4" />
-                                        )
-                                    ) : (
-                                        <ArrowUpDown className="w-4 h-4" />
-                                    )}
-                                </div>
-                            </th>
+                                            <ArrowUpDown className="w-4 h-4" />
+                                        )}
+                                    </div>
+                                </th>
+                            ))}
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-700">
-                        {filteredTransactions.map((transaction, index) => (
+                        {filteredAndSortedTransactions.map((transaction, index) => (
                             <tr
                                 key={index}
                                 className="hover:bg-gray-800 transition-colors"
@@ -161,8 +120,8 @@ const TransactionTable = () => {
                                 </td>
                                 <td
                                     className={`px-4 py-3 font-medium ${transaction.type === "Credited"
-                                            ? "text-green-400"
-                                            : "text-red-400"
+                                        ? "text-green-400"
+                                        : "text-red-400"
                                         }`}
                                 >
                                     {formatAmount(transaction.amount)}
@@ -170,8 +129,8 @@ const TransactionTable = () => {
                                 <td className="px-4 py-3">
                                     <span
                                         className={`px-2 py-1 rounded-full text-xs font-medium ${transaction.type === "Credited"
-                                                ? "bg-green-900 text-green-300"
-                                                : "bg-red-900 text-red-300"
+                                            ? "bg-green-900 text-green-300"
+                                            : "bg-red-900 text-red-300"
                                             }`}
                                     >
                                         {transaction.type}
@@ -184,7 +143,7 @@ const TransactionTable = () => {
             </div>
 
             <div className="mt-4 text-gray-400 text-sm">
-                Showing {filteredTransactions.length} transactions
+                Showing {filteredAndSortedTransactions.length} transactions
             </div>
         </div>
     );
