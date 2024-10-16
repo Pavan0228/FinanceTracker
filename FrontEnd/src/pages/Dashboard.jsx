@@ -22,6 +22,8 @@ const CardContent = ({ children }) => (
 const FinanceDashboard = () => {
     const [monthlyData, setMonthlyData] = useState([]);
     const [totalAmounts, setTotalAmounts] = useState({ totalDebit: 0, totalCredit: 0 });
+    const [monthlyLimit, setMonthlyLimit] = useState(3000); // Default hardcoded limit
+
     const [monthlyDebit, setMonthlyDebit] = useState(0);
     const [monthlyCredit, setMonthlyCredit] = useState(0);
     const [dailyDebit, setDailyDebit] = useState([]);
@@ -29,15 +31,41 @@ const FinanceDashboard = () => {
     const [showText, setShowText] = useState(false);
     const [showLogout, setShowLogout] = useState(false);
     const [dailyDebitAndCredit, setDailyDebitAndCredit] = useState([]);
+    const [selectedDate, setSelectedDate] = useState(() => {
+        const currentDate = new Date();
+        return `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+    });
 
-    const MONTHLY_LIMIT = 3000; // Hardcoded monthly limit
     const COLORS = ['#FF8042', '#00C49F', '#FFBB28', '#0088FE'];
 
     const userId = localStorage.getItem('uid');
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
+
+
+
+    const postMonthlyLimit = async () => {
+        try {
+            const response = await axios.post(`http://localhost:3000/api/monthly/user/${userId}/monthly-limit`, {
+                limit: 500 // Example of posting a new limit
+            });
+            console.log('Monthly limit updated:', response.data.message);
+            fetchMonthlyLimit(); // Fetch the updated limit
+        } catch (error) {
+            console.error('Error posting monthly limit:', error);
+        }
+    };
     useEffect(() => {
+        const fetchMonthlyLimit = async () => {
+            try {
+                const response = await axios.get(`http://localhost:3000/api/monthly/user/${userId}/monthly-limit`);
+                setMonthlyLimit(response.data.data[2024][2].limit); // Assuming the limit is inside this structure
+            } catch (error) {
+                console.error('Error fetching monthly limit:', error);
+            }
+        };
+
         const fetchData = async () => {
             try {
                 if (!userId) {
@@ -45,9 +73,12 @@ const FinanceDashboard = () => {
                     return;
                 }
 
-                const currentDate = new Date();
-                const currentMonth = currentDate.getMonth() + 1;
-                const currentYear = currentDate.getFullYear();
+                const [year, month] = selectedDate.split('-');
+                const currentMonth = parseInt(month);
+                const currentYear = parseInt(year);
+
+
+
 
                 const [monthlyResponse, totalResponse, monthlyDebitResponse, dailyResponse] = await Promise.all([
                     dispatch(fetchMonthlySummary(userId)).unwrap(),
@@ -55,6 +86,7 @@ const FinanceDashboard = () => {
                     dispatch(fetchMonthlyDebitCredit({ userId, currentMonth, currentYear })).unwrap(),
                     dispatch(fetchDailyTransactions({ userId, currentMonth, currentYear })).unwrap(),
                 ]);
+
 
                 const processedData = processMonthlyData(monthlyResponse);
                 setMonthlyData(processedData);
@@ -80,8 +112,52 @@ const FinanceDashboard = () => {
         };
 
         fetchData();
-    }, [dispatch, userId]);
+        fetchMonthlyLimit();
+    }, [dispatch, userId, selectedDate]);
 
+
+    const handleLimitChange = async () => {
+        const currentMonth = new Date().getMonth() + 1; // getMonth() returns 0-11, so +1 to get 1-12
+        const currentYear = new Date().getFullYear(); // Get the current year
+        
+        try {
+            const response = await axios.post(`http://localhost:3000/api/monthly/user/${userId}/monthly-limit`, {
+                limit: monthlyLimit,
+                month: currentMonth,
+                year: currentYear,
+            });
+            console.log('Monthly limit updated:', response.data);
+        } catch (error) {
+            console.error('Error updating monthly limit:', error);
+        }
+    };
+    
+
+
+    const handleDateChange = (event) => {
+        setSelectedDate(event.target.value);
+    };
+    const generateDateOptions = () => {
+        const options = [];
+        const currentDate = new Date();
+        const currentYear = currentDate.getFullYear();
+        const currentMonth = currentDate.getMonth();
+
+        for (let year = currentYear; year >= currentYear - 2; year--) {
+            for (let month = 11; month >= 0; month--) {
+                if (year === currentYear && month > currentMonth) continue;
+                const dateString = `${year}-${String(month + 1).padStart(2, '0')}`;
+                const dateLabel = new Date(year, month).toLocaleString('default', { month: 'long', year: 'numeric' });
+                options.push(
+                    <option key={dateString} value={dateString}>
+                        {dateLabel}
+                    </option>
+                );
+            }
+        }
+
+        return options;
+    };
     const processTransactions = (transactions, type) => {
         const filteredTransactions = transactions
             .filter(transaction => transaction.type === type)
@@ -122,7 +198,7 @@ const FinanceDashboard = () => {
 
     const getMonthlyDebitData = () => [
         { name: 'Spent', value: monthlyDebit },
-        { name: 'Remaining', value: Math.max(MONTHLY_LIMIT - monthlyDebit, 0) },
+        { name: 'Remaining', value: Math.max(monthlyLimit - monthlyDebit, 0) },
     ];
 
     const handleLogout = () => {
@@ -134,10 +210,10 @@ const FinanceDashboard = () => {
     const CustomDailyTool = ({ active, payload, label }) => {
         if (active && payload && payload.length) {
             const date = new Date(label);
-            const formattedDate = date.toLocaleDateString('en-GB', { 
-                day: '2-digit', 
-                month: '2-digit', 
-                year: 'numeric' 
+            const formattedDate = date.toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
             });
             return (
                 <div className="bg-gray-800 text-white p-2 rounded">
@@ -153,138 +229,163 @@ const FinanceDashboard = () => {
         navigate('/transaction-table', { state: { dailyDebitAndCredit } });
     };
 
-            return (
-                <div className="bg-gray-900 text-white p-4 sm:p-6 rounded-lg min-h-screen">
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
-                        <div>
-                            <h1 className="text-xl sm:text-2xl font-bold">Available Balance</h1>
-                            <p className="text-3xl sm:text-4xl font-bold text-green-400">₹14,822</p>
-                        </div>
-                        <div className="flex flex-wrap items-center space-x-2 sm:space-x-4">
-                            <Clock10 className="w-5 h-5 sm:w-6 sm:h-6" />
-                            <p className="text-xs sm:text-sm hover:text-green-300">{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                            <div className="relative">
-                                <FileSpreadsheet
-                                    size={20}
-                                    className="cursor-pointer hover:text-green-400 transition-colors duration-200"
-                                    onMouseEnter={() => setShowText(true)}
-                                    onMouseLeave={() => setShowText(false)}
-                                />
-                                {showText && (
-                                    <div className="absolute right-0 mt-2 py-2 px-4 bg-gray-800 text-white text-xs sm:text-sm rounded-md shadow-lg z-10 whitespace-nowrap transition-opacity duration-200 opacity-100">
-                                        Download as CSV
-                                    </div>
-                                )}
+    return (
+        <div className="bg-gray-900 text-white p-4 sm:p-6 rounded-lg min-h-screen">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
+                <div>
+                    <h1 className="text-xl sm:text-2xl font-bold">FinSense</h1>
+                </div>
+                <div className="flex flex-wrap items-center space-x-2 sm:space-x-4">
+                    <select
+                        value={selectedDate}
+                        onChange={handleDateChange}
+                        className="bg-gray-800 text-white border border-gray-700 rounded px-2 py-1"
+                    >
+                        {generateDateOptions()}
+                    </select>
+                    
+                </div>
+                <div className="flex flex-wrap items-center space-x-2 sm:space-x-4">
+                    <Clock10 className="w-5 h-5 sm:w-6 sm:h-6" />
+                    <p className="text-xs sm:text-sm hover:text-green-300">{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                    <div className="relative">
+                        <FileSpreadsheet
+                            size={20}
+                            className="cursor-pointer hover:text-green-400 transition-colors duration-200"
+                            onMouseEnter={() => setShowText(true)}
+                            onMouseLeave={() => setShowText(false)}
+                        />
+                        {showText && (
+                            <div className="absolute right-0 mt-2 py-2 px-4 bg-gray-800 text-white text-xs sm:text-sm rounded-md shadow-lg z-10 whitespace-nowrap transition-opacity duration-200 opacity-100">
+                                Download as CSV
                             </div>
-                            <User size={20} className='hover:text-green-400' />
-                            <div onClick={handleLogout} className="relative">
-                                <PowerOffIcon className='hover:text-red-600' size={20}
-                                    onMouseEnter={() => setShowLogout(true)}
-                                    onMouseLeave={() => setShowLogout(false)}
-                                />
-                                {showLogout && (
-                                    <div className="absolute right-0 mt-2 py-2 px-4 bg-gray-800 text-white text-xs sm:text-sm rounded-md shadow-lg z-10 whitespace-nowrap transition-opacity duration-200 opacity-100">
-                                        Logout
-                                    </div>
-                                )}
-                            </div>
-                        </div>
+                        )}
                     </div>
+                    <User size={20} className='hover:text-green-400' />
+                    <div onClick={handleLogout} className="relative">
+                        <PowerOffIcon className='hover:text-red-600' size={20}
+                            onMouseEnter={() => setShowLogout(true)}
+                            onMouseLeave={() => setShowLogout(false)}
+                        />
+                        {showLogout && (
+                            <div className="absolute right-0 mt-2 py-2 px-4 bg-gray-800 text-white text-xs sm:text-sm rounded-md shadow-lg z-10 whitespace-nowrap transition-opacity duration-200 opacity-100">
+                                Logout
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                        <Card className="bg-orange-500 col-span-1 sm:col-span-2 lg:col-span-1">
-                            <CardContent>
-                                <h2 className="text-lg sm:text-xl font-bold mb-2">Total Spendings</h2>
-                                <p className="text-2xl sm:text-3xl font-bold">₹{totalAmounts.totalDebit.toLocaleString()}</p>
-                            </CardContent>
-                            <CardContent>
-                                <h2 className="text-lg sm:text-xl font-bold mb-2">Total Earnings</h2>
-                                <p className="text-2xl sm:text-3xl font-bold">₹{totalAmounts.totalCredit.toLocaleString()}</p>
-                            </CardContent>
-                        </Card>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                <Card className="bg-orange-500 col-span-1 sm:col-span-2 lg:col-span-1">
+                    <CardContent>
+                        <h2 className="text-lg sm:text-xl font-bold mb-2">Total Spendings</h2>
+                        <p className="text-2xl sm:text-3xl font-bold">₹{totalAmounts.totalDebit.toLocaleString()}</p>
+                    </CardContent>
+                    <CardContent>
+                        <h2 className="text-lg sm:text-xl font-bold mb-2">Total Earnings</h2>
+                        <p className="text-2xl sm:text-3xl font-bold">₹{totalAmounts.totalCredit.toLocaleString()}</p>
+                    </CardContent>
+                </Card>
 
                 <div onClick={handleClick} >
-                <Card className="bg-gray-800 col-span-1">
-                    <CardHeader>Daily Debit</CardHeader>
+                    <Card className="bg-gray-800 col-span-1">
+                        <CardHeader>Daily Debit</CardHeader>
+                        <CardContent>
+                            <ResponsiveContainer width="100%" height={100}>
+                                <LineChart data={dailyDebit}>
+                                    <XAxis dataKey="date" hide />
+                                    <YAxis hide />
+                                    <Tooltip content={<CustomDailyTool />} />
+                                    <Line type="monotone" dataKey="amount" stroke="#FF8042" strokeWidth={2} />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                <div onClick={handleClick} >
+                    <Card className="bg-gray-800 col-span-1">
+                        <CardHeader>Daily Credit</CardHeader>
+                        <CardContent>
+                            <ResponsiveContainer width="100%" height={100}>
+                                <LineChart data={dailyCredit}>
+                                    <XAxis dataKey="date" hide />
+                                    <YAxis hide />
+                                    <Tooltip content={<CustomDailyTool />} />
+                                    <Line type="monotone" dataKey="amount" stroke="#00C49F" strokeWidth={2} />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                
+
+                <Card className="bg-gray-800 col-span-1 sm:col-span-2">
+                    <CardHeader>All Year Income & Expenses</CardHeader>
                     <CardContent>
-                        <ResponsiveContainer width="100%" height={100}>
-                            <LineChart data={dailyDebit}>
-                                <XAxis dataKey="date" hide />
-                                <YAxis hide />
-                                <Tooltip content={<CustomDailyTool />} />
-                                <Line type="monotone" dataKey="amount" stroke="#FF8042" strokeWidth={2} />
+                        <ResponsiveContainer width="100%" height={300}>
+                            <LineChart data={monthlyData}>
+                                <XAxis dataKey="name" />
+                                <YAxis />
+                                <Tooltip />
+                                <Legend />
+                                <Line type="monotone" dataKey="income" name="Income" stroke="#00C49F" strokeWidth={2} />
+                                <Line type="monotone" dataKey="expenses" name="Expenses" stroke="#FF8042" strokeWidth={2} />
                             </LineChart>
                         </ResponsiveContainer>
                     </CardContent>
                 </Card>
-                </div>
 
-                <div onClick={handleClick} >
                 <Card className="bg-gray-800 col-span-1">
-                    <CardHeader>Daily Credit</CardHeader>
+                    <CardHeader>Monthly Spending</CardHeader>
                     <CardContent>
-                        <ResponsiveContainer width="100%" height={100}>
-                            <LineChart data={dailyCredit}>
-                                <XAxis dataKey="date" hide />
-                                <YAxis hide />
-                                <Tooltip content={<CustomDailyTool />} />
-                                <Line type="monotone" dataKey="amount" stroke="#00C49F" strokeWidth={2} />
-                            </LineChart>
+                        <ResponsiveContainer width="100%" height={250}>
+                            <PieChart>
+                                <Pie
+                                    data={getMonthlyDebitData()}
+                                    cx="50%"
+                                    cy="50%"
+                                    outerRadius={60}
+                                    fill="#8884d8"
+                                    dataKey="value"
+                                    label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                                >
+                                    {getMonthlyDebitData().map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                    ))}
+                                </Pie>
+                                <Tooltip />
+                                <Legend />
+                            </PieChart>
                         </ResponsiveContainer>
+                        <div className="text-center mt-2 text-sm sm:text-base">
+                            <p>Monthly Limit: ₹{monthlyLimit.toLocaleString()}</p>
+                            <p>Spent: <span className="text-red-500">₹{monthlyDebit.toLocaleString()}</span></p>
+                            <p>Remaining: ₹{Math.max(monthlyLimit - monthlyDebit, 0).toLocaleString()}</p>
+                            <p>Credited: <span className="text-green-500">₹{monthlyCredit.toLocaleString()}</span></p>
+                        </div>
                     </CardContent>
                 </Card>
-                </div>
+                <Card className="bg-gray-800 col-span-1">
+                    <h2 className="text-lg sm:text-xl font-bold mb-2">Set Monthly Limit</h2>
+                    <input
+                        type="number"
+                        value={monthlyLimit}
+                        onChange={(e) => setMonthlyLimit(e.target.value)}
+                        className="p-2 bg-gray-700 text-white rounded w-full"
+                    />
+                    <button
+                        onClick={handleLimitChange}
+                        className="bg-green-500 text-white px-4 py-2 rounded mt-2"
+                    >
+                        Update Limit
+                    </button>
+                </Card>
+            </div>
+        </div>
+    );
+};
 
-
-                        <Card className="bg-gray-800 col-span-1 sm:col-span-2">
-                            <CardHeader>All Year Income & Expenses</CardHeader>
-                            <CardContent>
-                                <ResponsiveContainer width="100%" height={300}>
-                                    <LineChart data={monthlyData}>
-                                        <XAxis dataKey="name" />
-                                        <YAxis />
-                                        <Tooltip />
-                                        <Legend />
-                                        <Line type="monotone" dataKey="income" name="Income" stroke="#00C49F" strokeWidth={2} />
-                                        <Line type="monotone" dataKey="expenses" name="Expenses" stroke="#FF8042" strokeWidth={2} />
-                                    </LineChart>
-                                </ResponsiveContainer>
-                            </CardContent>
-                        </Card>
-
-                        <Card className="bg-gray-800 col-span-1">
-                            <CardHeader>Monthly Spending</CardHeader>
-                            <CardContent>
-                                <ResponsiveContainer width="100%" height={250}>
-                                    <PieChart>
-                                        <Pie
-                                            data={getMonthlyDebitData()}
-                                            cx="50%"
-                                            cy="50%"
-                                            outerRadius={70}
-                                            fill="#8884d8"
-                                            dataKey="value"
-                                            label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
-                                        >
-                                            {getMonthlyDebitData().map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                            ))}
-                                        </Pie>
-                                        <Tooltip />
-                                        <Legend />
-                                    </PieChart>
-                                </ResponsiveContainer>
-                                <div className="text-center mt-2 text-sm sm:text-base">
-                                    <p>Monthly Limit: ₹{MONTHLY_LIMIT.toLocaleString()}</p>
-                                    <p>Spent: <span className="text-red-500">₹{monthlyDebit.toLocaleString()}</span></p>
-                                    <p>Remaining: ₹{Math.max(MONTHLY_LIMIT - monthlyDebit, 0).toLocaleString()}</p>
-                                    <p>Credited: <span className="text-green-500">₹{monthlyCredit.toLocaleString()}</span></p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                </div>
-            );
-        };
-
-        export default FinanceDashboard;
+export default FinanceDashboard;
