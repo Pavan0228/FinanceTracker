@@ -4,6 +4,7 @@ import { Bell, Clock, Clock10, CreditCard, FileSpreadsheet, PowerOffIcon, User }
 import axios from 'axios';
 import { fetchDailyTransactions, fetchMonthlyDebitCredit, fetchMonthlySummary, fetchTotalAmounts } from '../store/expensesSlice';
 import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 
 // Custom Card components
 const Card = ({ className, children }) => (
@@ -27,12 +28,14 @@ const FinanceDashboard = () => {
     const [dailyCredit, setDailyCredit] = useState([]);
     const [showText, setShowText] = useState(false);
     const [showLogout, setShowLogout] = useState(false);
+    const [dailyDebitAndCredit, setDailyDebitAndCredit] = useState([]);
 
     const MONTHLY_LIMIT = 3000; // Hardcoded monthly limit
     const COLORS = ['#FF8042', '#00C49F', '#FFBB28', '#0088FE'];
 
     const userId = localStorage.getItem('uid');
     const dispatch = useDispatch();
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchData = async () => {
@@ -66,6 +69,7 @@ const FinanceDashboard = () => {
 
                 // Process daily transactions
                 const dailyTransactions = dailyResponse.monthlyMessages;
+                setDailyDebitAndCredit(dailyTransactions);
 
                 // Process debit transactions
                 const debitTransactions = processTransactions(dailyTransactions, "Debited");
@@ -141,6 +145,11 @@ const FinanceDashboard = () => {
         return null;
     };
 
+    const handleClick = () => {
+        console.log(dailyDebitAndCredit)
+        navigate('/transaction-table', { state: { dailyDebitAndCredit } });
+    };
+
     return (
         <div className="bg-gray-900 text-white p-4 sm:p-6 rounded-lg min-h-screen">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
@@ -191,6 +200,7 @@ const FinanceDashboard = () => {
                     </CardContent>
                 </Card>
 
+                <div onClick={handleClick} >
                 <Card className="bg-gray-800 col-span-1">
                     <CardHeader>Daily Debit</CardHeader>
                     <CardContent>
@@ -218,6 +228,7 @@ const FinanceDashboard = () => {
                         </ResponsiveContainer>
                     </CardContent>
                 </Card>
+                </div>
 
 
                 <Card className="bg-gray-800 col-span-1 sm:col-span-2">
