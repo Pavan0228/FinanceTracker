@@ -8,6 +8,7 @@ import DownloadCSV from "./pages/DownloadCSV";
 import TransactionTable from "./pages/TransactionTable";
 import Sidebar from "./components/Sidebar"; // Import the new Sidebar component
 import HelpPage from './pages/Help';
+import Yearly from './pages/Yearly';
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
             <Route path="/dashboard" element={<ProtectedRoute element={<Dashboard />} />} />
             <Route path="/download" element={<ProtectedRoute element={<DownloadCSV />} />} />  
             <Route path="/Help" element={<ProtectedRoute element={<HelpPage />} />} />  
+            <Route path="/yearly" element={<ProtectedRoute element={<Yearly />} />} />  
 
             <Route path="/Daily" element={<ProtectedRoute element={<TransactionTable />} />} />  
           </Routes>

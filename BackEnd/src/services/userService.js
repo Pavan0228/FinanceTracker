@@ -96,7 +96,7 @@ export const calculateTotalDebitsAndCredits = (messages) => {
     if (messages) {
         for (const message of messages) {
             // Iterate over the messages array
-            const amount = parseFloat(message.amount); // Accessing amount from the message object
+            const amount = parseFloat(message.amount.replace(/,/g, ''));
 
             if (message.type === "Debited") {
                 totalDebit += amount || 0; // Add amount if it's a debit
@@ -259,7 +259,7 @@ export async function getUserYearlyMessagesById(userId, year) {
                         const decryptedYear = parseInt(dateObject.split('/')[2], 10);
                         if (decryptedYear === parseInt(year, 10)) {
                             decryptedMessages.push({
-                                amount: parseFloat(decryptedAmount),
+                                amount: parseFloat(decryptedAmount.replace(/,/g, '')), // Remove commas before parsing
                                 date: decryptedDate,
                                 sender: msg.sender || "Unknown",
                                 type: decryptedType,

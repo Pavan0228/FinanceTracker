@@ -22,8 +22,7 @@ const CardContent = ({ children }) => (
 const FinanceDashboard = () => {
     const [monthlyData, setMonthlyData] = useState([]);
     const [totalAmounts, setTotalAmounts] = useState({ totalDebit: 0, totalCredit: 0 });
-    const [monthlyLimit, setMonthlyLimit] = useState(3000); // Default hardcoded limit
-
+    const [monthlyLimit, setMonthlyLimit] = useState(''); // Default hardcoded limit
     const [monthlyDebit, setMonthlyDebit] = useState(0);
     const [monthlyCredit, setMonthlyCredit] = useState(0);
     const [dailyDebit, setDailyDebit] = useState([]);
@@ -42,29 +41,20 @@ const FinanceDashboard = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-
-
-
-    const postMonthlyLimit = async () => {
-        try {
-            const response = await axios.post(`http://localhost:3000/api/monthly/user/${userId}/monthly-limit`, {
-                limit: 500 // Example of posting a new limit
-            });
-            console.log('Monthly limit updated:', response.data.message);
-            fetchMonthlyLimit(); // Fetch the updated limit
-        } catch (error) {
-            console.error('Error posting monthly limit:', error);
-        }
-    };
     useEffect(() => {
         const fetchMonthlyLimit = async () => {
             try {
                 const response = await axios.get(`http://localhost:3000/api/monthly/user/${userId}/monthly-limit`);
-                setMonthlyLimit(response.data.data[2024][2].limit); // Assuming the limit is inside this structure
+                setMonthlyLimit(response.data.data[2024][2].limit);
             } catch (error) {
                 console.error('Error fetching monthly limit:', error);
             }
         };
+
+        fetchMonthlyLimit()
+    }, [])
+
+    useEffect(() => {
 
         const fetchData = async () => {
             try {
@@ -78,14 +68,14 @@ const FinanceDashboard = () => {
                 const currentYear = parseInt(year);
 
 
-
-
                 const [monthlyResponse, totalResponse, monthlyDebitResponse, dailyResponse] = await Promise.all([
                     dispatch(fetchMonthlySummary(userId)).unwrap(),
                     dispatch(fetchTotalAmounts(userId)).unwrap(),
                     dispatch(fetchMonthlyDebitCredit({ userId, currentMonth, currentYear })).unwrap(),
                     dispatch(fetchDailyTransactions({ userId, currentMonth, currentYear })).unwrap(),
                 ]);
+
+                console.log("total" , totalResponse)
 
 
                 const processedData = processMonthlyData(monthlyResponse);
@@ -99,10 +89,10 @@ const FinanceDashboard = () => {
 
                 const dailyTransactions = dailyResponse.monthlyMessages;
                 setDailyDebitAndCredit(dailyTransactions);
-
+                
                 const debitTransactions = processTransactions(dailyTransactions, "Debited");
                 setDailyDebit(debitTransactions);
-
+                
                 const creditTransactions = processTransactions(dailyTransactions, "Credited");
                 setDailyCredit(creditTransactions);
 
@@ -112,26 +102,26 @@ const FinanceDashboard = () => {
         };
 
         fetchData();
-        fetchMonthlyLimit();
     }, [dispatch, userId, selectedDate]);
 
 
     const handleLimitChange = async () => {
         const currentMonth = new Date().getMonth() + 1; // getMonth() returns 0-11, so +1 to get 1-12
         const currentYear = new Date().getFullYear(); // Get the current year
-        
+
         try {
             const response = await axios.post(`http://localhost:3000/api/monthly/user/${userId}/monthly-limit`, {
                 limit: monthlyLimit,
                 month: currentMonth,
                 year: currentYear,
             });
-            console.log('Monthly limit updated:', response.data);
+            console.log('Monthly limit updated:', response.data.data.limit);
+            setMonthlyLimit(response.data.data.limit)
         } catch (error) {
             console.error('Error updating monthly limit:', error);
         }
     };
-    
+
 
 
     const handleDateChange = (event) => {
@@ -158,6 +148,16 @@ const FinanceDashboard = () => {
 
         return options;
     };
+
+    const formatCurrency = (value) => {
+        return new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(value);
+    };
+    
     const processTransactions = (transactions, type) => {
         const filteredTransactions = transactions
             .filter(transaction => transaction.type === type)
@@ -167,7 +167,7 @@ const FinanceDashboard = () => {
                 const formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
                 return {
                     date: formattedDate,
-                    amount: parseFloat(transaction.amount)
+                    amount: parseFloat(transaction.amount.replace(/,/g, ''))
                 };
             });
 
@@ -231,7 +231,7 @@ const FinanceDashboard = () => {
 
     return (
         <div className="bg-gray-900 text-white p-4 sm:p-6 rounded-lg min-h-screen">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
+            <div className="flex flex-col sm:flex-row  items-start sm:items-center mb-6 space-y-4 sm:space-y-0 justify-between ">
                 <div>
                     <h1 className="text-xl sm:text-2xl font-bold">PennyWise</h1>
                 </div>
@@ -243,9 +243,9 @@ const FinanceDashboard = () => {
                     >
                         {generateDateOptions()}
                     </select>
-                    
+
                 </div>
-                <div className="flex flex-wrap items-center space-x-2 sm:space-x-4">
+                <div className="flex flex-wrap items-center space-x-2 sm:space-x-4 ">
                     <Clock10 className="w-5 h-5 sm:w-6 sm:h-6" />
                     <p className="text-xs sm:text-sm hover:text-green-300">{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
                     <div className="relative">
@@ -320,7 +320,7 @@ const FinanceDashboard = () => {
                     </Card>
                 </div>
 
-                
+
 
                 <Card className="bg-gray-800 col-span-1 sm:col-span-2">
                     <CardHeader>All Year Income & Expenses</CardHeader>
@@ -328,8 +328,8 @@ const FinanceDashboard = () => {
                         <ResponsiveContainer width="100%" height={300}>
                             <LineChart data={monthlyData}>
                                 <XAxis dataKey="name" />
-                                <YAxis />
-                                <Tooltip />
+                                <YAxis tickFormatter={(value) => formatCurrency(value)} />
+                                <Tooltip formatter={(value) => formatCurrency(value)} />
                                 <Legend />
                                 <Line type="monotone" dataKey="income" name="Income" stroke="#00C49F" strokeWidth={2} />
                                 <Line type="monotone" dataKey="expenses" name="Expenses" stroke="#FF8042" strokeWidth={2} />
@@ -372,9 +372,10 @@ const FinanceDashboard = () => {
                     <h2 className="text-lg sm:text-xl font-bold mb-2">Set Monthly Limit</h2>
                     <input
                         type="number"
+                        className="p-2 bg-gray-700 text-white rounded w-full"
+                        placeholder='input monthly limit'
                         value={monthlyLimit}
                         onChange={(e) => setMonthlyLimit(e.target.value)}
-                        className="p-2 bg-gray-700 text-white rounded w-full"
                     />
                     <button
                         onClick={handleLimitChange}

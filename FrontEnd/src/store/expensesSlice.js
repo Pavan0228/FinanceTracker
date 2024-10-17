@@ -24,6 +24,7 @@ export const fetchTotalAmounts = createAsyncThunk(
             const response = await axios.get(
                 `http://localhost:3000/api/expense/${userId}/total`
             );
+            console.log("total iin slice",response.data)
             return response.data;
         } catch (error) {
             return rejectWithValue(
@@ -56,6 +57,7 @@ export const fetchDailyTransactions = createAsyncThunk(
             const response = await axios.get(
                 `http://localhost:3000/api/expense/${userId}/monthly/messages/${currentMonth}/${currentYear}`
             );
+            
             return response.data;
         } catch (error) {
             return rejectWithValue(
@@ -67,12 +69,12 @@ export const fetchDailyTransactions = createAsyncThunk(
 
 export const getYearlyMessages = createAsyncThunk(
     "expenses/getYearlyMessages",
-    async ({ userId, year }, { rejectWithValue }) => {
+    async ({ userId, currentYear }, { rejectWithValue }) => {
         try {
             const response = await axios.get(
-                `http://localhost:3000/api/expense/${userId}/messages/${year}`
+                `http://localhost:3000/api/expense/${userId}/messages/${currentYear}`
             );
-            return response.data;
+            return response.data.data;
         } catch (error) {
             return rejectWithValue(
                 error.response?.data || "Failed to fetch yearly messages"

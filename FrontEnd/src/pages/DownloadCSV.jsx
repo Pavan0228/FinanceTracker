@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-import { Download, FileSpreadsheet, Eye, Calendar , Loader } from "lucide-react";
+import { Download, FileSpreadsheet, Eye, Calendar, Loader } from "lucide-react";
 import {
     fetchDailyTransactions,
     getYearlyMessages,
@@ -38,10 +38,11 @@ const DownloadFiles = () => {
         const yearlyResponse = await dispatch(
             getYearlyMessages({
                 userId,
-                year: selectedYear,
+                currentYear: selectedYear,
             })
         ).unwrap();
-        return yearlyResponse.data;
+        console.log(yearlyResponse)
+        return yearlyResponse
     }
 
     const fetchMonthlyMessages = async () => {
@@ -53,9 +54,9 @@ const DownloadFiles = () => {
             let debitedTotal = 0;
             messages.forEach((message) => {
                 if (message.type === "Credited") {
-                    creditedTotal += parseFloat(message.amount);
+                    creditedTotal += parseFloat(message.amount.replace(/,/g, '')); // Remove commas before parsing
                 } else if (message.type === "Debited") {
-                    debitedTotal += parseFloat(message.amount);
+                    debitedTotal += parseFloat(message.amount.replace(/,/g, '')); // Remove commas before parsing
                 }
             });
 
@@ -76,10 +77,10 @@ const DownloadFiles = () => {
         setIsLoading(true);
         try {
             const data = isYearly ? await fetchYearlyData() : jsonData;
-            const filename = isYearly 
+            const filename = isYearly
                 ? `yearly_transactions_${selectedYear}.xlsx`
                 : `transactions_${selectedMonth}_${selectedYear}.xlsx`;
-            
+
             const worksheet = XLSX.utils.json_to_sheet(data);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "Transactions");
@@ -109,13 +110,13 @@ const DownloadFiles = () => {
         setIsLoading(true);
         try {
             const data = isYearly ? await fetchYearlyData() : jsonData;
-            const filename = isYearly 
+            const filename = isYearly
                 ? `yearly_transactions_${selectedYear}.pdf`
                 : `transactions_${selectedMonth}_${selectedYear}.pdf`;
             const title = isYearly
                 ? `Yearly Transactions for ${selectedYear}`
                 : `Transactions for ${new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'long' })} ${selectedYear}`;
-            
+
             const doc = generatePDF(data, title);
             doc.save(filename);
         } catch (error) {
@@ -132,7 +133,7 @@ const DownloadFiles = () => {
             const title = isYearly
                 ? `Yearly Transactions for ${selectedYear}`
                 : `Transactions for ${new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'long' })} ${selectedYear}`;
-            
+
             const doc = generatePDF(data, title);
             window.open(doc.output("bloburl"), "_blank");
         } catch (error) {
@@ -164,7 +165,7 @@ const DownloadFiles = () => {
             {isLoading && <LoadingOverlay />}
             <div className="max-w-6xl mx-auto">
                 <h1 className="text-4xl font-bold mb-8 text-center">Financial Reports</h1>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="bg-gray-800 rounded-lg shadow-lg p-6">
                         <h2 className="text-2xl font-semibold mb-4">Monthly Reports</h2>
@@ -209,7 +210,7 @@ const DownloadFiles = () => {
                             </button>
                         </div>
                     </div>
-                    
+
                     <div className="bg-gray-800 rounded-lg shadow-lg p-6">
                         <h2 className="text-2xl font-semibold mb-4">Yearly Report</h2>
                         <div className="flex space-x-4 mb-4">
@@ -243,7 +244,7 @@ const DownloadFiles = () => {
                         </div>
                     </div>
                 </div>
-                
+
                 <div className="mt-8 bg-gray-800 rounded-lg shadow-lg p-6">
                     <h2 className="text-2xl font-semibold mb-4">View Reports</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -263,17 +264,17 @@ const DownloadFiles = () => {
                         </button>
                     </div>
                 </div>
-                
+
                 <div className="mt-8 bg-gray-800 rounded-lg shadow-lg p-6">
                     <h2 className="text-2xl font-semibold mb-4">Summary</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="bg-green-600 rounded-lg p-4">
                             <h3 className="text-lg font-medium mb-2">Total Credited</h3>
-                            <p className="text-2xl font-bold">${totals.credited.toFixed(2)}</p>
+                            <p className="text-2xl font-bold">₹{totals.credited.toFixed(2)}</p>
                         </div>
                         <div className="bg-red-600 rounded-lg p-4">
                             <h3 className="text-lg font-medium mb-2">Total Debited</h3>
-                            <p className="text-2xl font-bold">${totals.debited.toFixed(2)}</p>
+                            <p className="text-2xl font-bold">₹{totals.debited.toFixed(2)}</p>
                         </div>
                     </div>
                 </div>
