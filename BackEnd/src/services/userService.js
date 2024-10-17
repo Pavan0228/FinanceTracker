@@ -98,9 +98,9 @@ export const calculateTotalDebitsAndCredits = (messages) => {
             // Iterate over the messages array
             const amount = parseFloat(message.amount.replace(/,/g, ''));
 
-            if (message.type === "debited") {
+            if (message.type === "Debited") {
                 totalDebit += amount || 0; // Add amount if it's a debit
-            } else if (message.type === "credited") {
+            } else if (message.type === "Credited") {
                 totalCredit += amount || 0; // Add amount if it's a credit
             }
         }
@@ -133,9 +133,9 @@ export const monthlyDebitCredit = (messages, monthNumber) => {
 
             // Check if the message's month matches the provided monthNumber
             if (messageMonth === monthNumber) {
-                if (message.type === "debited") {
+                if (message.type === "Debited") {
                     totalDebit += parseFloat(message.amount);
-                } else if (message.type === "credited") {
+                } else if (message.type === "Credited") {
                     totalCredit += parseFloat(message.amount);
                 }
             }

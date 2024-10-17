@@ -90,10 +90,10 @@ const FinanceDashboard = () => {
                 const dailyTransactions = dailyResponse.monthlyMessages;
                 setDailyDebitAndCredit(dailyTransactions);
                 
-                const debitTransactions = processTransactions(dailyTransactions, "debited");
+                const debitTransactions = processTransactions(dailyTransactions, "Debited");
                 setDailyDebit(debitTransactions);
                 
-                const creditTransactions = processTransactions(dailyTransactions, "credited");
+                const creditTransactions = processTransactions(dailyTransactions, "Credited");
                 setDailyCredit(creditTransactions);
 
             } catch (error) {
@@ -362,7 +362,7 @@ const FinanceDashboard = () => {
                             <p>Monthly Limit: ₹{monthlyLimit.toLocaleString()}</p>
                             <p>Spent: <span className="text-red-500">₹{monthlyDebit.toLocaleString()}</span></p>
                             <p>Remaining: ₹{Math.max(monthlyLimit - monthlyDebit, 0).toLocaleString()}</p>
-                            <p>credited: <span className="text-green-500">₹{monthlyCredit.toLocaleString()}</span></p>
+                            <p>Credited: <span className="text-green-500">₹{monthlyCredit.toLocaleString()}</span></p>
                         </div>
                     </CardContent>
                 </Card>

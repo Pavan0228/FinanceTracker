@@ -11,7 +11,7 @@ import { useDispatch } from "react-redux";
 
 const DownloadFiles = () => {
     const [jsonData, setJsonData] = useState([]);
-    const [totals, setTotals] = useState({ credited: 0, debited: 0 });
+    const [totals, setTotals] = useState({ Credited: 0, Debited: 0 });
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
     const [isLoading, setIsLoading] = useState(false);
@@ -50,18 +50,18 @@ const DownloadFiles = () => {
         try {
             const messages = await fetchDailyData();
 
-            let creditedTotal = 0;
-            let debitedTotal = 0;
+            let CreditedTotal = 0;
+            let DebitedTotal = 0;
             messages.forEach((message) => {
-                if (message.type === "credited") {
-                    creditedTotal += parseFloat(message.amount.replace(/,/g, '')); // Remove commas before parsing
-                } else if (message.type === "debited") {
-                    debitedTotal += parseFloat(message.amount.replace(/,/g, '')); // Remove commas before parsing
+                if (message.type === "Credited") {
+                    CreditedTotal += parseFloat(message.amount.replace(/,/g, '')); // Remove commas before parsing
+                } else if (message.type === "Debited") {
+                    DebitedTotal += parseFloat(message.amount.replace(/,/g, '')); // Remove commas before parsing
                 }
             });
 
             setJsonData(messages);
-            setTotals({ credited: creditedTotal, debited: debitedTotal });
+            setTotals({ Credited: CreditedTotal, Debited: DebitedTotal });
         } catch (error) {
             console.error("Error fetching monthly messages:", error);
         } finally {
@@ -269,12 +269,12 @@ const DownloadFiles = () => {
                     <h2 className="text-2xl font-semibold mb-4">Summary</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="bg-green-600 rounded-lg p-4">
-                            <h3 className="text-lg font-medium mb-2">Total credited</h3>
-                            <p className="text-2xl font-bold">₹{totals.credited.toFixed(2)}</p>
+                            <h3 className="text-lg font-medium mb-2">Total Credited</h3>
+                            <p className="text-2xl font-bold">₹{totals.Credited.toFixed(2)}</p>
                         </div>
                         <div className="bg-red-600 rounded-lg p-4">
-                            <h3 className="text-lg font-medium mb-2">Total debited</h3>
-                            <p className="text-2xl font-bold">₹{totals.debited.toFixed(2)}</p>
+                            <h3 className="text-lg font-medium mb-2">Total Debited</h3>
+                            <p className="text-2xl font-bold">₹{totals.Debited.toFixed(2)}</p>
                         </div>
                     </div>
                 </div>
@@ -290,7 +290,7 @@ export default DownloadFiles;
 
 // const DownloadFiles = () => {
 //     const [jsonData, setJsonData] = React.useState([]);
-//     const [totals, setTotals] = React.useState({ credited: 0, debited: 0 });
+//     const [totals, setTotals] = React.useState({ Credited: 0, Debited: 0 });
 
 //     const userId = localStorage.getItem("uid");
 
@@ -306,19 +306,19 @@ export default DownloadFiles;
 //                 );
 //                 const messages = response.data.monthlyMessages;
 
-//                 // Calculate totals for credited and debited
-//                 let creditedTotal = 0;
-//                 let debitedTotal = 0;
+//                 // Calculate totals for Credited and Debited
+//                 let CreditedTotal = 0;
+//                 let DebitedTotal = 0;
 //                 messages.forEach((message) => {
-//                     if (message.type === "credited") {
-//                         creditedTotal += parseFloat(message.amount);
-//                     } else if (message.type === "debited") {
-//                         debitedTotal += parseFloat(message.amount);
+//                     if (message.type === "Credited") {
+//                         CreditedTotal += parseFloat(message.amount);
+//                     } else if (message.type === "Debited") {
+//                         DebitedTotal += parseFloat(message.amount);
 //                     }
 //                 });
 
 //                 setJsonData(messages);
-//                 setTotals({ credited: creditedTotal, debited: debitedTotal });
+//                 setTotals({ Credited: CreditedTotal, Debited: DebitedTotal });
 //             } catch (error) {
 //                 console.error("Error fetching monthly messages:", error);
 //             }
