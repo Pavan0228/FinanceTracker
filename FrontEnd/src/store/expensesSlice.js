@@ -151,11 +151,11 @@ const expensesSlice = createSlice({
                 const dailyTransactions = action.payload.monthlyMessages;
                 state.dailyDebit = processTransactions(
                     dailyTransactions,
-                    "Debited"
+                    "debited"
                 );
                 state.dailyCredit = processTransactions(
                     dailyTransactions,
-                    "Credited"
+                    "credited"
                 );
             })
             .addCase(fetchDailyTransactions.rejected, (state, action) => {

@@ -110,8 +110,6 @@ export const getYearlyMessages = async (req, res) => {
         const { id, year } = req.params;
         const decryptedMessages = await getUserYearlyMessagesById(id, year);
 
-    
-
         if (decryptedMessages.length > 0) {
             res.status(200).send({
                 message: "User messages retrieved successfully",
@@ -143,9 +141,9 @@ export const getAllMonthSummary = async (req, res) => {
                 monthlyTotals[month] = { totalCredit: 0, totalDebit: 0 };
             }
 
-            if (msg.type === "Debited") {
+            if (msg.type === "debited") {
                 monthlyTotals[month].totalDebit += parseFloat(msg.amount);
-            } else if (msg.type === "Credited") {
+            } else if (msg.type === "credited") {
                 monthlyTotals[month].totalCredit += parseFloat(msg.amount);
             }
         });

@@ -79,7 +79,7 @@ const Sidebar = () => {
                             className="w-8 h-8 rounded-full mr-3"
                         />
                         <span className="text-sm font-medium">
-                            {user?.name || 'John Doe'} 
+                            {user?.name || 'Pavan'} 
                         </span>
                     </div>
                 )}

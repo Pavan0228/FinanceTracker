@@ -53,9 +53,9 @@ const DownloadFiles = () => {
             let creditedTotal = 0;
             let debitedTotal = 0;
             messages.forEach((message) => {
-                if (message.type === "Credited") {
+                if (message.type === "credited") {
                     creditedTotal += parseFloat(message.amount.replace(/,/g, '')); // Remove commas before parsing
-                } else if (message.type === "Debited") {
+                } else if (message.type === "debited") {
                     debitedTotal += parseFloat(message.amount.replace(/,/g, '')); // Remove commas before parsing
                 }
             });
@@ -269,11 +269,11 @@ const DownloadFiles = () => {
                     <h2 className="text-2xl font-semibold mb-4">Summary</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="bg-green-600 rounded-lg p-4">
-                            <h3 className="text-lg font-medium mb-2">Total Credited</h3>
+                            <h3 className="text-lg font-medium mb-2">Total credited</h3>
                             <p className="text-2xl font-bold">₹{totals.credited.toFixed(2)}</p>
                         </div>
                         <div className="bg-red-600 rounded-lg p-4">
-                            <h3 className="text-lg font-medium mb-2">Total Debited</h3>
+                            <h3 className="text-lg font-medium mb-2">Total debited</h3>
                             <p className="text-2xl font-bold">₹{totals.debited.toFixed(2)}</p>
                         </div>
                     </div>
@@ -310,9 +310,9 @@ export default DownloadFiles;
 //                 let creditedTotal = 0;
 //                 let debitedTotal = 0;
 //                 messages.forEach((message) => {
-//                     if (message.type === "Credited") {
+//                     if (message.type === "credited") {
 //                         creditedTotal += parseFloat(message.amount);
-//                     } else if (message.type === "Debited") {
+//                     } else if (message.type === "debited") {
 //                         debitedTotal += parseFloat(message.amount);
 //                     }
 //                 });

@@ -90,10 +90,10 @@ const FinanceDashboard = () => {
                 const dailyTransactions = dailyResponse.monthlyMessages;
                 setDailyDebitAndCredit(dailyTransactions);
                 
-                const debitTransactions = processTransactions(dailyTransactions, "Debited");
+                const debitTransactions = processTransactions(dailyTransactions, "debited");
                 setDailyDebit(debitTransactions);
                 
-                const creditTransactions = processTransactions(dailyTransactions, "Credited");
+                const creditTransactions = processTransactions(dailyTransactions, "credited");
                 setDailyCredit(creditTransactions);
 
             } catch (error) {
@@ -148,7 +148,6 @@ const FinanceDashboard = () => {
 
         return options;
     };
-
     const formatCurrency = (value) => {
         return new Intl.NumberFormat('en-IN', {
             style: 'currency',
@@ -157,8 +156,7 @@ const FinanceDashboard = () => {
             maximumFractionDigits: 0
         }).format(value);
     };
-    
-    const processTransactions = (transactions, type) => {
+        const processTransactions = (transactions, type) => {
         const filteredTransactions = transactions
             .filter(transaction => transaction.type === type)
             .map(transaction => {
@@ -364,7 +362,7 @@ const FinanceDashboard = () => {
                             <p>Monthly Limit: ₹{monthlyLimit.toLocaleString()}</p>
                             <p>Spent: <span className="text-red-500">₹{monthlyDebit.toLocaleString()}</span></p>
                             <p>Remaining: ₹{Math.max(monthlyLimit - monthlyDebit, 0).toLocaleString()}</p>
-                            <p>Credited: <span className="text-green-500">₹{monthlyCredit.toLocaleString()}</span></p>
+                            <p>credited: <span className="text-green-500">₹{monthlyCredit.toLocaleString()}</span></p>
                         </div>
                     </CardContent>
                 </Card>
