@@ -46,25 +46,29 @@ export async function getUserDataById(userId) {
         throw new Error("Failed to retrieve user data");
     }
 }
-//!  Working
+//!  Working Updated UserInput
 export async function getUserMessagesById(userId) {
     try {
-        const snapshot = await db.ref(`user/${userId}/messages/Month-Year`).once("value");
-        const messages = snapshot.val();
-        // Check if messages exist and convert to an array
-        if (messages) {
-            const messageArray = [];
-            
+        // Fetch messages from /messages/Month-Year
+        const messageSnapshot = await db
+            .ref(`user/${userId}/messages/Month-Year`)
+            .once("value");
+        const messages = messageSnapshot.val();
 
-            // Iterate over each month-year object
+        // Fetch inputs from /input
+        const inputSnapshot = await db
+            .ref(`user/${userId}/input`)
+            .once("value");
+        const inputs = inputSnapshot.val();
+
+        const messageArray = [];
+
+        // Process messages from /messages/Month-Year
+        if (messages) {
             for (const monthYear in messages) {
                 const monthMessages = messages[monthYear];
-                
-                // Iterate over each message in the month-year
                 for (const msg in monthMessages) {
                     const message = monthMessages[msg];
-
-                    // Decrypt the messages and push to the array
                     messageArray.push({
                         amount: decrypt(message.amount),
                         date: message.dateTime.split(" ")[0], // Extract just the date part
@@ -73,13 +77,30 @@ export async function getUserMessagesById(userId) {
                     });
                 }
             }
-
-            // Sort messages by date
-            messageArray.sort((a, b) => new Date(b.date) - new Date(a.date));
-            return messageArray;
-        } else {
-            return [];
         }
+
+        // Process inputs from /input
+        if (inputs) {
+            for (const year in inputs) {
+                const yearlyInputs = inputs[year];
+                for (const month in yearlyInputs) {
+                    const monthlyInputs = yearlyInputs[month];
+                    for (const inputId in monthlyInputs) {
+                        const input = monthlyInputs[inputId];
+                        messageArray.push({
+                            amount: input.amount, // No decryption needed if stored as plain text
+                            date: input.date, // Convert input date to DD/MM/YYYY
+                            sender: "User Input", // Default sender for user inputs
+                            type: input.type, // Assuming input.type is already in plain text
+                        });
+                    }
+                }
+            }
+        }
+
+        // Sort the combined messages by date
+        messageArray.sort((a, b) => new Date(b.date) - new Date(a.date));
+        return messageArray;
     } catch (error) {
         console.error("Error retrieving user messages:", error);
         throw new Error("Failed to retrieve user messages");
@@ -88,7 +109,7 @@ export async function getUserMessagesById(userId) {
 
 // Function to calculate total debits and credits
 
-//!  Working
+//!  Working with userInput
 export const calculateTotalDebitsAndCredits = (messages) => {
     let totalDebit = 0;
     let totalCredit = 0;
@@ -96,7 +117,7 @@ export const calculateTotalDebitsAndCredits = (messages) => {
     if (messages) {
         for (const message of messages) {
             // Iterate over the messages array
-            const amount = parseFloat(message.amount.replace(/,/g, ''));
+            const amount = parseFloat(message.amount.replace(/,/g, ""));
 
             if (message.type === "Debited") {
                 totalDebit += amount || 0; // Add amount if it's a debit
@@ -112,6 +133,7 @@ export const calculateTotalDebitsAndCredits = (messages) => {
     };
 };
 
+//!working with userInput
 export const monthlyDebitCredit = (messages, monthNumber) => {
     let totalDebit = 0;
     let totalCredit = 0;
@@ -148,73 +170,58 @@ export const monthlyDebitCredit = (messages, monthNumber) => {
     };
 };
 
-// export async function getUserMonthlyMessagesById(userId, month) {
-//     try {
-//         const snapshot = await db.ref(`user/${userId}/messages`).once("value");
-//         const messages = snapshot.val();
-
-//         if (messages) {
-//             const messageArray = Object.values(messages);
-
-//             const filteredMessages = messageArray.filter((msg) => {
-//                 const decryptedDate = decrypt(msg.date);
-//                 const dateParts = decryptedDate.split('/');
-//                 const messageMonth = dateParts[1];
-//                 return messageMonth === month;
-//             });
-
-//             const decryptedMessages = filteredMessages.map((msg) => ({
-//                 amount: decrypt(msg.amount),
-//                 date: decrypt(msg.date),
-//                 sender: msg.sender,
-//                 type: decrypt(msg.Type),
-//             }));
-
-//             decryptedMessages.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-//             return decryptedMessages;
-//         } else {
-//             return [];
-//         }
-//     } catch (error) {
-//         console.error("Error retrieving monthly messages:", error);
-//         throw new Error("Failed to retrieve monthly messages");
-//     }
-// }
-
+//!working with userInput
 export async function getUserMonthlyMessagesById(userId, monthYear) {
     try {
-        // Fetch the messages for the specified user
-        const snapshot = await db
+        console.log(monthYear)
+        // Fetch messages from the specified user
+        const messagesSnapshot = await db
             .ref(`user/${userId}/messages/Month-Year/${monthYear}`)
             .once("value");
-        const messages = snapshot.val();
+        const messages = messagesSnapshot.val() || {};
+        //split last 4 digits as year from monthYear
+        const year = monthYear.slice(2, 6);
+        const month = monthYear.slice(0, 2);
+        console.log(year,month)
+        // Fetch input entries for the specified user
+        const inputSnapshot = await db
+            .ref(`user/${userId}/input/2024/10`)
+            .once("value");
+        const inputs = inputSnapshot.val() || {};
 
-        if (messages) {
-            const messageArray = Object.keys(messages).map((key) => ({
-                ...messages[key], // Decrypt data
-                timestamp: key, // Add the key as a timestamp
-            }));
+        // Combine messages and inputs
+        const combinedArray = [];
 
-            const decryptedMessages = messageArray.map((msg) => ({
+        // Process messages
+        for (const key in messages) {
+            const msg = messages[key];
+            combinedArray.push({
                 amount: decrypt(msg.amount),
-                date: msg.dateTime, // Use the `dateTime` field for the actual date
+                date: msg.dateTime,
                 sender: msg.sender,
-                type: decrypt(msg.type), // Ensure type is decrypted correctly
-                timestamp: msg.timestamp, // Include timestamp for sorting
-            }));
-
-            // Sort the messages by date (descending)
-            decryptedMessages.sort(
-
-                (a, b) => new Date(a.date) - new Date(b.date)
-                //console.log the date
-            );
-
-            return decryptedMessages;
-        } else {
-            return []; // Return empty array if no messages found
+                type: decrypt(msg.type),
+                timestamp: key, // Add the key as a timestamp
+                source: 'message', // Mark as a message
+            });
         }
+
+        // Process inputs
+        for (const key in inputs) {
+            const input = inputs[key];
+            combinedArray.push({
+                amount: input.amount,
+                date: input.date, // Assuming input date is already in the correct format
+                sender: userId, // You can modify this as needed
+                type: input.type,
+                timestamp: key, // Add the key as a timestamp
+                source: 'input', // Mark as an input
+            });
+        }
+
+        // Sort the combined array by date (descending)
+        combinedArray.sort((a, b) => new Date(b.date.split("/").reverse().join("-")) - new Date(a.date.split("/").reverse().join("-")));
+
+        return combinedArray;
     } catch (error) {
         console.error("Error retrieving monthly messages:", error);
         throw new Error("Failed to retrieve monthly messages");
@@ -228,7 +235,9 @@ export async function getUserYearlyMessagesById(userId, year) {
         console.log("Fetching data for user:", userId, "and year:", year);
 
         // Fetch the 'Month-Year' data for the user
-        const snapshot = await db.ref(`user/${userId}/messages/Month-Year`).once("value");
+        const snapshot = await db
+            .ref(`user/${userId}/messages/Month-Year`)
+            .once("value");
         const userData = snapshot.val();
 
         if (!userData) {
@@ -240,7 +249,6 @@ export async function getUserYearlyMessagesById(userId, year) {
 
         // Loop through each month-year key (e.g., 'MMYYYY')
         for (const monthYear in userData) {
-
             const messageYear = parseInt(monthYear.slice(2, 6), 10); // Extract the 'YYYY'
 
             if (messageYear === parseInt(year, 10)) {
@@ -256,10 +264,15 @@ export async function getUserYearlyMessagesById(userId, year) {
                         // Verify if the decrypted date falls within the correct year
                         const dateObject = decryptedDate;
                         //split decrypted year after dd/mm/ till /yyyy
-                        const decryptedYear = parseInt(dateObject.split('/')[2], 10);
+                        const decryptedYear = parseInt(
+                            dateObject.split("/")[2],
+                            10
+                        );
                         if (decryptedYear === parseInt(year, 10)) {
                             decryptedMessages.push({
-                                amount: parseFloat(decryptedAmount.replace(/,/g, '')), // Remove commas before parsing
+                                amount: parseFloat(
+                                    decryptedAmount.replace(/,/g, "")
+                                ), // Remove commas before parsing
                                 date: decryptedDate,
                                 sender: msg.sender || "Unknown",
                                 type: decryptedType,
@@ -267,7 +280,11 @@ export async function getUserYearlyMessagesById(userId, year) {
                             });
                         }
                     } catch (decryptError) {
-                        console.error("Error decrypting message:", messageId, decryptError);
+                        console.error(
+                            "Error decrypting message:",
+                            messageId,
+                            decryptError
+                        );
                         // Optionally skip the message if decryption fails
                     }
                 }

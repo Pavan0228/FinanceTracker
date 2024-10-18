@@ -35,6 +35,7 @@ const TransactionTable = () => {
                 try {
                     const dailyResponse = await dispatch(fetchDailyTransactions({ userId, currentMonth, currentYear })).unwrap();
                     setDailyTransactions(dailyResponse.monthlyMessages);
+                    console.log(dailyResponse)
                 } catch (error) {
                     setError('Failed to fetch daily transactions. Please try again later.');
                 } finally {
@@ -80,10 +81,10 @@ const TransactionTable = () => {
         const [day, month, year] = datePart.split('/');
         const date = new Date(`${year}-${month}-${day}T${timePart}`);
 
-        if (isNaN(date.getTime())) {
-            console.error(`Invalid date: ${dateString}`);
-            return "Invalid Date";
-        }
+        // if (isNaN(date.getTime())) {
+        //     console.error(`Invalid date: ${dateString}`);
+        //     return "Invalid Date";
+        // }
 
         return `${day}/${month}/${year}`;
     };
