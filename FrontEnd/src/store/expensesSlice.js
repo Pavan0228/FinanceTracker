@@ -24,7 +24,6 @@ export const fetchTotalAmounts = createAsyncThunk(
             const response = await axios.get(
                 `http://localhost:3000/api/expense/${userId}/total`
             );
-            console.log("total iin slice",response.data)
             return response.data;
         } catch (error) {
             return rejectWithValue(

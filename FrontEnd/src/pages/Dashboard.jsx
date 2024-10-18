@@ -34,6 +34,8 @@ const FinanceDashboard = () => {
         const currentDate = new Date();
         return `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
     });
+    const [CreditedTotal, setCreditedTotal] = useState(0);
+    const [DebitedTotal, setDebitedTotal] = useState(0);
 
     const COLORS = ['#FF8042', '#00C49F', '#FFBB28', '#0088FE'];
 
@@ -227,6 +229,20 @@ const FinanceDashboard = () => {
         navigate('/daily', { state: { dailyDebitAndCredit } });
     };
 
+    useEffect(() => {
+        let CreditedTotal = 0;
+        let DebitedTotal = 0;
+        dailyDebitAndCredit.forEach((message) => {
+            if (message.type === "Credited") {
+                CreditedTotal += parseFloat(message.amount.replace(/,/g, ''));
+            } else if (message.type === "Debited") {
+                DebitedTotal += parseFloat(message.amount.replace(/,/g, ''));
+            }
+        });
+        setCreditedTotal(CreditedTotal)
+        setDebitedTotal(DebitedTotal)
+    } , [dailyDebitAndCredit])
+
     return (
         <div className="bg-gray-900 text-white p-4 sm:p-6 rounded-lg min-h-screen">
             <div className="flex flex-col sm:flex-row  items-start sm:items-center mb-6 space-y-4 sm:space-y-0 justify-between ">
@@ -279,6 +295,7 @@ const FinanceDashboard = () => {
                     <CardContent>
                         <h2 className="text-lg sm:text-xl font-bold mb-2">Total Spendings</h2>
                         <p className="text-2xl sm:text-3xl font-bold">₹{totalAmounts.totalDebit.toLocaleString()}</p>
+                        <p>{CreditedTotal}</p>
                     </CardContent>
                     <CardContent>
                         <h2 className="text-lg sm:text-xl font-bold mb-2">Total Earnings</h2>
