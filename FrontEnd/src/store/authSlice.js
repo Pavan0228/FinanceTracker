@@ -39,13 +39,12 @@ export const login = createAsyncThunk(
 
 export const getUser = createAsyncThunk(
     "auth/getUser",
-    async (_, { getState, rejectWithValue }) => {
-        const { userId } = getState().auth; // Access userId from state
+    async ({ userId }, { rejectWithValue }) => {
         try {
             const response = await axios.get(
                 `http://localhost:3000/api/auth/${userId}`
-            ); // Use userId in the API call
-            return response.data; // Return the user data
+            );
+            return response.data;
         } catch (error) {
             console.log("Get user error", error);
             return rejectWithValue(
@@ -74,6 +73,18 @@ const authSlice = createSlice({
                 toast.success("Login successful!");
             })
             .addCase(login.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+            .addCase(getUser.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(getUser.fulfilled, (state, action) => {
+                state.loading = false;
+                state.user = action.payload;
+            })
+            .addCase(getUser.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
             });

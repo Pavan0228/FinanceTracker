@@ -6,7 +6,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoute";
 import DownloadCSV from "./pages/DownloadCSV";
 import TransactionTable from "./pages/TransactionTable";
-import Sidebar from "./components/Sidebar"; // Import the new Sidebar component
+import SideBar from "./components/SideBar"; // Import the new Sidebar component
 import HelpPage from './pages/Help';
 import Yearly from './pages/Yearly';
 
@@ -17,7 +17,7 @@ function App() {
         {/* Render Sidebar only for protected routes */}
         <Routes>
           <Route path="/" element={null} />
-          <Route path="/*" element={<Sidebar />} />
+          <Route path="/*" element={<SideBar />} />
         </Routes>
         
         <div className="flex-grow overflow-auto">
