@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell } from 'recharts';
-import { Bell, Clock, Clock10, CreditCard, FileSpreadsheet, PowerOffIcon, User } from 'lucide-react';
+import { Bell, Clock, Clock10, CreditCard, FileSpreadsheet, PowerOffIcon, User, X } from 'lucide-react';
 import axios from 'axios';
 import { fetchDailyTransactions, fetchMonthlyDebitCredit, fetchMonthlySummary, fetchTotalAmounts } from '../store/expensesSlice';
 import { useDispatch } from 'react-redux';
@@ -19,10 +19,30 @@ const CardContent = ({ children }) => (
     <div>{children}</div>
 );
 
+const CustomDailyTool = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+        const date = new Date(label);
+        const formattedDate = date.toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+        const transaction = payload[0].payload;
+        return (
+            <div className="bg-gray-800 text-white p-2 rounded">
+                <p>Date: {formattedDate}</p>
+                <p>Amount: ₹{transaction.amount.toFixed(2)}</p>
+                {transaction.source === 'input' && <p>Source: Input</p>}
+            </div>
+        );
+    }
+    return null;
+};
+
 const FinanceDashboard = () => {
     const [monthlyData, setMonthlyData] = useState([]);
     const [totalAmounts, setTotalAmounts] = useState({ totalDebit: 0, totalCredit: 0 });
-    const [monthlyLimit, setMonthlyLimit] = useState(''); // Default hardcoded limit
+    const [monthlyLimit, setMonthlyLimit] = useState('');
     const [monthlyDebit, setMonthlyDebit] = useState(0);
     const [monthlyCredit, setMonthlyCredit] = useState(0);
     const [dailyDebit, setDailyDebit] = useState([]);
@@ -36,6 +56,10 @@ const FinanceDashboard = () => {
     });
     const [CreditedTotal, setCreditedTotal] = useState(0);
     const [DebitedTotal, setDebitedTotal] = useState(0);
+    const [showLimitInput, setShowLimitInput] = useState(false);
+    const [showLimitModal, setShowLimitModal] = useState(false);
+    const [newLimit, setNewLimit] = useState('');
+
 
     const COLORS = ['#FF8042', '#00C49F', '#FFBB28', '#0088FE'];
 
@@ -47,17 +71,18 @@ const FinanceDashboard = () => {
         const fetchMonthlyLimit = async () => {
             try {
                 const response = await axios.get(`http://localhost:3000/api/monthly/user/${userId}/monthly-limit`);
-                setMonthlyLimit(response.data.data[2024][2].limit);
+                const currentYear = new Date().getFullYear();
+                const currentMonth = new Date().getMonth() + 1;
+                setMonthlyLimit(response.data.data[currentYear][currentMonth].limit);
             } catch (error) {
                 console.error('Error fetching monthly limit:', error);
             }
         };
 
-        fetchMonthlyLimit()
-    }, [])
+        fetchMonthlyLimit();
+    }, [userId]);
 
     useEffect(() => {
-
         const fetchData = async () => {
             try {
                 if (!userId) {
@@ -69,16 +94,12 @@ const FinanceDashboard = () => {
                 const currentMonth = parseInt(month);
                 const currentYear = parseInt(year);
 
-
                 const [monthlyResponse, totalResponse, monthlyDebitResponse, dailyResponse] = await Promise.all([
                     dispatch(fetchMonthlySummary(userId)).unwrap(),
                     dispatch(fetchTotalAmounts(userId)).unwrap(),
                     dispatch(fetchMonthlyDebitCredit({ userId, currentMonth, currentYear })).unwrap(),
                     dispatch(fetchDailyTransactions({ userId, currentMonth, currentYear })).unwrap(),
                 ]);
-
-                console.log("total" , totalResponse)
-
 
                 const processedData = processMonthlyData(monthlyResponse);
                 setMonthlyData(processedData);
@@ -91,10 +112,10 @@ const FinanceDashboard = () => {
 
                 const dailyTransactions = dailyResponse.monthlyMessages;
                 setDailyDebitAndCredit(dailyTransactions);
-                
+
                 const debitTransactions = processTransactions(dailyTransactions, "Debited");
                 setDailyDebit(debitTransactions);
-                
+
                 const creditTransactions = processTransactions(dailyTransactions, "Credited");
                 setDailyCredit(creditTransactions);
 
@@ -106,29 +127,82 @@ const FinanceDashboard = () => {
         fetchData();
     }, [dispatch, userId, selectedDate]);
 
-
-    const handleLimitChange = async () => {
-        const currentMonth = new Date().getMonth() + 1; // getMonth() returns 0-11, so +1 to get 1-12
-        const currentYear = new Date().getFullYear(); // Get the current year
+    const handleLimitChange = async (newLimit) => {
+        const currentMonth = new Date().getMonth() + 1;
+        const currentYear = new Date().getFullYear();
 
         try {
             const response = await axios.post(`http://localhost:3000/api/monthly/user/${userId}/monthly-limit`, {
-                limit: monthlyLimit,
+                limit: newLimit,
                 month: currentMonth,
                 year: currentYear,
             });
             console.log('Monthly limit updated:', response.data.data.limit);
-            setMonthlyLimit(response.data.data.limit)
+            setMonthlyLimit(response.data.data.limit);
+            setShowLimitModal(false);
         } catch (error) {
             console.error('Error updating monthly limit:', error);
         }
     };
+
+    const LimitModal = () => {
+        const [localLimit, setLocalLimit] = useState(monthlyLimit.toString());
+        const inputRef = useRef(null);
+
+        useEffect(() => {
+            if (inputRef.current) {
+                inputRef.current.focus();
+            }
+        }, []);
+
+        const handleLocalLimitChange = (e) => {
+            setLocalLimit(e.target.value);
+        };
+
+        const handleSubmit = (e) => {
+            e.preventDefault();
+            handleLimitChange(parseFloat(localLimit));
+        };
+
+        return (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md">
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-xl font-bold">Set Monthly Limit</h2>
+                        <button onClick={() => setShowLimitModal(false)} className="text-gray-400 hover:text-white">
+                            <X size={24} />
+                        </button>
+                    </div>
+                    <form onSubmit={handleSubmit}>
+                        <input
+                            ref={inputRef}
+                            type="number"
+                            className="w-full p-2 bg-gray-700 text-white rounded mb-4"
+                            placeholder="Enter new monthly limit"
+                            value={localLimit}
+                            onChange={handleLocalLimitChange}
+                        />
+                        <div className="flex justify-end">
+                            <button
+                                type="submit"
+                                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded transition duration-200"
+                            >
+                                Update Limit
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        );
+    };
+
 
 
 
     const handleDateChange = (event) => {
         setSelectedDate(event.target.value);
     };
+
     const generateDateOptions = () => {
         const options = [];
         const currentDate = new Date();
@@ -150,6 +224,7 @@ const FinanceDashboard = () => {
 
         return options;
     };
+
     const formatCurrency = (value) => {
         return new Intl.NumberFormat('en-IN', {
             style: 'currency',
@@ -158,7 +233,8 @@ const FinanceDashboard = () => {
             maximumFractionDigits: 0
         }).format(value);
     };
-        const processTransactions = (transactions, type) => {
+
+    const processTransactions = (transactions, type) => {
         const filteredTransactions = transactions
             .filter(transaction => transaction.type === type)
             .map(transaction => {
@@ -167,20 +243,21 @@ const FinanceDashboard = () => {
                 const formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
                 return {
                     date: formattedDate,
-                    amount: parseFloat(transaction.amount.replace(/,/g, ''))
+                    amount: parseFloat(transaction.amount.replace(/,/g, '')),
+                    source: transaction.source
                 };
             });
 
         const groupedTransactions = filteredTransactions.reduce((acc, transaction) => {
             if (!acc[transaction.date]) {
-                acc[transaction.date] = 0;
+                acc[transaction.date] = { amount: 0, source: transaction.source };
             }
-            acc[transaction.date] += transaction.amount;
+            acc[transaction.date].amount += transaction.amount;
             return acc;
         }, {});
 
         return Object.entries(groupedTransactions)
-            .map(([date, amount]) => ({ date, amount }))
+            .map(([date, { amount, source }]) => ({ date, amount, source }))
             .sort((a, b) => new Date(a.date) - new Date(b.date));
     };
 
@@ -206,27 +283,8 @@ const FinanceDashboard = () => {
         window.location.href = '/';
     }
 
-
-    const CustomDailyTool = ({ active, payload, label }) => {
-        if (active && payload && payload.length) {
-            const date = new Date(label);
-            const formattedDate = date.toLocaleDateString('en-GB', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric'
-            });
-            return (
-                <div className="bg-gray-800 text-white p-2 rounded">
-                    <p>Date: {formattedDate}</p>
-                    <p>Amount: ₹{payload[0].value.toFixed(2)}</p>
-                </div>
-            );
-        }
-        return null;
-    };
-
     const handleClick = () => {
-        navigate('/daily', { state: { date:selectedDate } });
+        navigate('/daily', { state: { date: selectedDate } });
     };
 
     useEffect(() => {
@@ -234,22 +292,24 @@ const FinanceDashboard = () => {
         let DebitedTotal = 0;
         dailyDebitAndCredit.forEach((message) => {
             if (message.type === "Credited") {
-                CreditedTotal += parseFloat(message.amount.replace(/,/g, ''));
+                CreditedTotal += parseFloat(message.amount.replace(/,/g, ''))
             } else if (message.type === "Debited") {
-                DebitedTotal += parseFloat(message.amount.replace(/,/g, ''));
+                DebitedTotal += parseFloat(parseFloat(message.amount.replace(/,/g, '')).toFixed(2));
             }
         });
-        setCreditedTotal(CreditedTotal)
-        setDebitedTotal(DebitedTotal)
-    } , [dailyDebitAndCredit])
+        setCreditedTotal(CreditedTotal.toFixed(2))
+        setDebitedTotal(DebitedTotal.toFixed(2))
+    }, [dailyDebitAndCredit])
+
 
     return (
         <div className="bg-gray-900 text-white p-4 sm:p-6 rounded-lg min-h-screen">
-            <div className="flex flex-col sm:flex-row  items-start sm:items-center mb-6 space-y-4 sm:space-y-0 justify-between ">
-                <div>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center mb-6 space-y-4 sm:space-y-0 justify-between">
+                <div className="flex items-center space-x-4">
                     <h1 className="text-xl sm:text-2xl font-bold">PennyWise</h1>
+
                 </div>
-                <div className="flex flex-wrap items-center space-x-2 sm:space-x-4">
+                <div className="flex flex-wrap items-center space-x-2 sm:space-x-4 gap-x-10">
                     <select
                         value={selectedDate}
                         onChange={handleDateChange}
@@ -257,9 +317,15 @@ const FinanceDashboard = () => {
                     >
                         {generateDateOptions()}
                     </select>
-
+                    <button
+                        onClick={() => setShowLimitModal(true)}
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition duration-200"
+                    >
+                        Set Monthly Limit
+                    </button>
                 </div>
-                <div className="flex flex-wrap items-center space-x-2 sm:space-x-4 ">
+
+                <div className="flex flex-wrap items-center space-x-2 sm:space-x-4">
                     <Clock10 className="w-5 h-5 sm:w-6 sm:h-6" />
                     <p className="text-xs sm:text-sm hover:text-green-300">{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
                     <div className="relative">
@@ -274,8 +340,8 @@ const FinanceDashboard = () => {
                                 Download as Excel
                             </div>
                         )}
+
                     </div>
-                    <User size={20} className='hover:text-green-400' />
                     <div onClick={handleLogout} className="relative">
                         <PowerOffIcon className='hover:text-red-600' size={20}
                             onMouseEnter={() => setShowLogout(true)}
@@ -289,17 +355,51 @@ const FinanceDashboard = () => {
                     </div>
                 </div>
             </div>
+            {showLimitModal && <LimitModal />}
 
+            {showLimitInput && (
+                <div className="mb-4">
+                    <input
+                        type="number"
+                        className="p-2 bg-gray-700 text-white rounded mr-2"
+                        placeholder='Enter monthly limit'
+                        value={monthlyLimit}
+                        onChange={(e) => setMonthlyLimit(e.target.value)}
+                    />
+                    <button
+                        onClick={handleLimitChange}
+                        className="bg-green-500 text-white px-4 py-2 rounded"
+                    >
+                        Update Limit
+                    </button>
+                </div>
+            )}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 <Card className="bg-orange-500 col-span-1 sm:col-span-2 lg:col-span-1">
+                    <div className='flex gap-x-10'>
+                        <CardContent>
+                            <h2 className="text-lg sm:text-xl font-bold mb-2">Total Spendings</h2>
+                            <p className="text-2xl sm:text-3xl font-bold">₹{totalAmounts.totalDebit.toLocaleString()}</p>
+
+                        </CardContent>
+                        <CardContent>
+                            <h2 className="text-lg sm:text-xl font-bold mb-2">Total Earnings</h2>
+                            <p className="text-2xl sm:text-3xl font-bold">₹{totalAmounts.totalCredit.toLocaleString()}</p>
+                        </CardContent>
+
+                    </div>
                     <CardContent>
-                        <h2 className="text-lg sm:text-xl font-bold mb-2">Total Spendings</h2>
-                        <p className="text-2xl sm:text-3xl font-bold">₹{totalAmounts.totalDebit.toLocaleString()}</p>
-                        <p>{CreditedTotal}</p>
-                    </CardContent>
-                    <CardContent>
-                        <h2 className="text-lg sm:text-xl font-bold mb-2">Total Earnings</h2>
-                        <p className="text-2xl sm:text-3xl font-bold">₹{totalAmounts.totalCredit.toLocaleString()}</p>
+                        <div className='flex gap-x-10'>
+
+                            <div>
+                                <h2 className="text-lg sm:text-xl font-bold mt-2">Monthly Earning</h2>
+                                <p className="text-2xl sm:text-3xl font-bold">₹{CreditedTotal}</p>
+                            </div>
+                            <div>
+                                <h2 className="text-lg sm:text-xl font-bold mt-2">Monthly Expense</h2>
+                                <p className="text-2xl sm:text-3xl font-bold">₹{DebitedTotal}</p>
+                            </div>
+                        </div>
                     </CardContent>
                 </Card>
 
@@ -334,6 +434,7 @@ const FinanceDashboard = () => {
                         </CardContent>
                     </Card>
                 </div>
+
 
 
 
@@ -383,22 +484,7 @@ const FinanceDashboard = () => {
                         </div>
                     </CardContent>
                 </Card>
-                <Card className="bg-gray-800 col-span-1">
-                    <h2 className="text-lg sm:text-xl font-bold mb-2">Set Monthly Limit</h2>
-                    <input
-                        type="number"
-                        className="p-2 bg-gray-700 text-white rounded w-full"
-                        placeholder='input monthly limit'
-                        value={monthlyLimit}
-                        onChange={(e) => setMonthlyLimit(e.target.value)}
-                    />
-                    <button
-                        onClick={handleLimitChange}
-                        className="bg-green-500 text-white px-4 py-2 rounded mt-2"
-                    >
-                        Update Limit
-                    </button>
-                </Card>
+
             </div>
         </div>
     );
