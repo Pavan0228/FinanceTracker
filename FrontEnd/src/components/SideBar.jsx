@@ -8,9 +8,11 @@ import {
     Wallet,
     HelpCircle,
     ChevronLeft,
-    Minus,,
+    ChevronRight,
+    Minus,
     PlusCircle
-} from "lucide-react";
+} from 'lucide-react';
+    
 
 import image from "../assets/CroppedImage.png";
 import { getUser } from "../store/authSlice";
@@ -64,8 +66,8 @@ const Logo = memo(({ isCollapsed }) => (
             />
         </div>
         <h1 
-            className={`text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 
-                bg-clip-text text-transparent transition-all duration-300 ease-in-out 
+            className={`text-xl font-bold  text-white
+                bg-clip-text  transition-all duration-300 ease-in-out 
                 overflow-hidden whitespace-nowrap
                 ${isCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'}`}
         >
@@ -106,12 +108,12 @@ const Sidebar = () => {
     const dispatch = useDispatch();
 
     const navigationItems = [
-        { icon: LayoutDashboard, text: "Dashboard", path: "/dashboard" },
-        { icon: CreditCard, text: "Daily", path: "/daily" },
-        { icon: PieChart, text: "Yearly", path: "/yearly" },
+        { icon: LayoutDashboard, text: 'Dashboard', path: '/dashboard' },
+        { icon: CreditCard, text: 'Daily', path: '/daily' },
+        { icon: PieChart, text: 'Yearly', path: '/yearly' },
         { icon: PlusCircle, text: 'Input Finance', path: '/input' },
-        { icon: Wallet, text: "Download Data", path: "/download" },
-        { icon: HelpCircle, text: "Help", path: "/help" },
+        { icon: Wallet, text: 'Download Data', path: '/download' },
+        { icon: HelpCircle, text: 'Help', path: '/help' },
         
     ];
 
