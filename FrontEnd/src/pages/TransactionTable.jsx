@@ -14,13 +14,6 @@ const TransactionTable = () => {
 
     const location = useLocation();
     const dispatch = useDispatch();
-
-    useEffect(() => {
-        if (location?.state?.dailyDebitAndCredit) {
-            setDailyTransactions(location.state.dailyDebitAndCredit);
-        }
-    }, [location.state]);
-
     const userId = localStorage.getItem('uid');
 
     const currentDate = new Date();
@@ -28,12 +21,22 @@ const TransactionTable = () => {
     const currentYear = currentDate.getFullYear();
 
     useEffect(() => {
-        if (!dailyTransactions) {
-            const fetchTransactions = async () => {
+        const stateData = location?.state?.dailyDebitAndCredit;
+        if (stateData && stateData.length > 0) {
+            setDailyTransactions(stateData);
+            setLoading(false);
+        }
+    }, [location.state]);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            if (!location?.state?.dailyDebitAndCredit && !dailyTransactions) {
                 setLoading(true);
                 setError(null);
                 try {
-                    const dailyResponse = await dispatch(fetchDailyTransactions({ userId, currentMonth, currentYear })).unwrap();
+                    const dailyResponse = await dispatch(
+                        fetchDailyTransactions({ userId, currentMonth, currentYear })
+                    ).unwrap();
                     setDailyTransactions(dailyResponse.monthlyMessages);
                     console.log(dailyResponse)
                 } catch (error) {
@@ -41,10 +44,11 @@ const TransactionTable = () => {
                 } finally {
                     setLoading(false);
                 }
-            };
-            fetchTransactions();
-        }
-    }, [dailyTransactions, userId, currentMonth, currentYear, dispatch]);
+            }
+        };
+
+        fetchData();
+    }, [dispatch, userId, currentMonth, currentYear, location.state]);
 
     const handleSort = (field) => {
         if (sortField === field) {
