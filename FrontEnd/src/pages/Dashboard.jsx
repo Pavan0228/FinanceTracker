@@ -226,7 +226,7 @@ const FinanceDashboard = () => {
     };
 
     const handleClick = () => {
-        navigate('/daily', { state: { dailyDebitAndCredit } });
+        navigate('/daily', { state: { date:selectedDate } });
     };
 
     useEffect(() => {
