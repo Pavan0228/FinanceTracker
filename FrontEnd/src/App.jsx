@@ -6,9 +6,10 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoute";
 import DownloadCSV from "./pages/DownloadCSV";
 import TransactionTable from "./pages/TransactionTable";
-import Sidebar from "./components/Sidebar"; // Import the new Sidebar component
+import Sidebar from "./components/SideBar"; // Import the new Sidebar component
 import HelpPage from './pages/Help';
 import Yearly from './pages/Yearly';
+import InputPage from './pages/InputPage';
 
 function App() {
   return (
@@ -30,6 +31,8 @@ function App() {
             <Route path="/download" element={<ProtectedRoute element={<DownloadCSV />} />} />  
             <Route path="/Help" element={<ProtectedRoute element={<HelpPage />} />} />  
             <Route path="/yearly" element={<ProtectedRoute element={<Yearly />} />} />  
+            <Route path="/input" element={<ProtectedRoute element={<InputPage />} />} />  
+
 
             <Route path="/Daily" element={<ProtectedRoute element={<TransactionTable />} />} />  
           </Routes>

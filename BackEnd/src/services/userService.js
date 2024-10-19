@@ -235,19 +235,25 @@ export async function getUserYearlyMessagesById(userId, year) {
         console.log("Fetching data for user:", userId, "and year:", year);
 
         // Fetch the 'Month-Year' data for the user
-        const snapshot = await db
+        const messagesSnapshot = await db
             .ref(`user/${userId}/messages/Month-Year`)
             .once("value");
-        const userData = snapshot.val();
+        const userData = messagesSnapshot.val();
 
         if (!userData) {
             console.log("No user data found for ID:", userId);
             return [];
         }
 
+        // Fetch the input data for the specified year
+        const limitSnapshot = await db
+            .ref(`user/${userId}/input/${year}`)
+            .once("value");
+        const limitData = limitSnapshot.val();
+
         const decryptedMessages = [];
 
-        // Loop through each month-year key (e.g., 'MMYYYY')
+        // Loop through each month-year key (e.g., 'MMYYYY') for messages
         for (const monthYear in userData) {
             const messageYear = parseInt(monthYear.slice(2, 6), 10); // Extract the 'YYYY'
 
@@ -261,18 +267,13 @@ export async function getUserYearlyMessagesById(userId, year) {
                         const decryptedAmount = decrypt(msg.amount);
                         const decryptedDate = msg.dateTime;
                         const decryptedType = decrypt(msg.type);
+
                         // Verify if the decrypted date falls within the correct year
-                        const dateObject = decryptedDate;
-                        //split decrypted year after dd/mm/ till /yyyy
-                        const decryptedYear = parseInt(
-                            dateObject.split("/")[2],
-                            10
-                        );
+                        const decryptedYear = parseInt(decryptedDate.split("/")[2], 10);
+
                         if (decryptedYear === parseInt(year, 10)) {
                             decryptedMessages.push({
-                                amount: parseFloat(
-                                    decryptedAmount.replace(/,/g, "")
-                                ), // Remove commas before parsing
+                                amount: parseFloat(decryptedAmount.replace(/,/g, "")), // Remove commas before parsing
                                 date: decryptedDate,
                                 sender: msg.sender || "Unknown",
                                 type: decryptedType,
@@ -280,19 +281,43 @@ export async function getUserYearlyMessagesById(userId, year) {
                             });
                         }
                     } catch (decryptError) {
-                        console.error(
-                            "Error decrypting message:",
-                            messageId,
-                            decryptError
-                        );
-                        // Optionally skip the message if decryption fails
+                        console.error("Error decrypting message:", messageId, decryptError);
                     }
                 }
             }
         }
 
-        // Sort messages by date (descending)
-        decryptedMessages.sort((a, b) => new Date(b.date) - new Date(a.date));
+        // Process limit data (input entries)
+        if (limitData) {
+            for (const [month, monthInputs] of Object.entries(limitData)) {
+                for (const [inputId, input] of Object.entries(monthInputs)) {
+                    try {
+                        // Assuming input fields are not encrypted
+                        const decryptedAmount = input.amount;
+                        const decryptedDate = input.date; // Assuming date is in DD/MM/YYYY format
+                        const decryptedType = input.type;
+
+                        // Parse the decrypted date into a Date object
+                        const decryptedYear = parseInt(decryptedDate.split("/")[2], 10);
+
+                        if (decryptedYear === parseInt(year, 10)) {
+                            decryptedMessages.push({
+                                amount: parseFloat(decryptedAmount.replace(/,/g, "")),
+                                date: decryptedDate,
+                                sender: userId, // Assuming sender is the userId for inputs
+                                type: decryptedType,
+                                messageId: inputId, // Unique ID for input
+                            });
+                        }
+                    } catch (error) {
+                        console.error("Error processing input:", inputId, error);
+                    }
+                }
+            }
+        }
+
+        // Sort messages and inputs by date (descending)
+        decryptedMessages.sort((a, b) => new Date(b.date.split("/").reverse().join("-")) - new Date(a.date.split("/").reverse().join("-")));
 
         return decryptedMessages;
     } catch (error) {

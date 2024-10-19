@@ -8,7 +8,8 @@ import {
     Wallet,
     HelpCircle,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    PlusCircle
 } from 'lucide-react';
 
 import image from "../assets/CroppedImage.png";
@@ -35,15 +36,17 @@ const Sidebar = () => {
         { icon: LayoutDashboard, text: 'Dashboard', path: '/dashboard' },
         { icon: CreditCard, text: 'Daily', path: '/daily' },
         { icon: PieChart, text: 'Yearly', path: '/yearly' },
+        { icon: PlusCircle, text: 'Input Finance', path: '/input' },
         { icon: Wallet, text: 'Download Data', path: '/download' },
         { icon: HelpCircle, text: 'Help', path: '/help' },
+        
     ];
 
     const toggleSidebar = () => setIsCollapsed(!isCollapsed);
 
     return (
         <div
-            className={`bg-gray-800 text-white h-screen transition-all duration-300 ${isCollapsed ? 'w-28' : 'w-64'
+            className={`bg-gray-800 text-white h-screen transition-all duration-300 ${isCollapsed ? 'w-24' : 'w-64'
                 } flex flex-col`}
         >
             <div className="flex items-center justify-between p-4 border-b border-gray-700 gap-x-3">

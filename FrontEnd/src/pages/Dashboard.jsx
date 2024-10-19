@@ -19,6 +19,29 @@ const CardContent = ({ children }) => (
     <div>{children}</div>
 );
 
+
+
+const CustomDailyTool = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+        const date = new Date(label);
+        const formattedDate = date.toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+        const transaction = payload[0].payload;
+        return (
+            <div className="bg-gray-800 text-white p-2 rounded">
+                <p>Date: {formattedDate}</p>
+                <p>Amount: ₹{transaction.amount.toFixed(2)}</p>
+                {transaction.source === 'input' && <p>Source: Input</p>}
+            </div>
+        );
+    }
+    return null;
+};
+
+
 const FinanceDashboard = () => {
     const [monthlyData, setMonthlyData] = useState([]);
     const [totalAmounts, setTotalAmounts] = useState({ totalDebit: 0, totalCredit: 0 });
@@ -77,8 +100,7 @@ const FinanceDashboard = () => {
                     dispatch(fetchDailyTransactions({ userId, currentMonth, currentYear })).unwrap(),
                 ]);
 
-                console.log("total" , totalResponse)
-
+                console.log(dailyResponse)
 
                 const processedData = processMonthlyData(monthlyResponse);
                 setMonthlyData(processedData);
@@ -91,10 +113,10 @@ const FinanceDashboard = () => {
 
                 const dailyTransactions = dailyResponse.monthlyMessages;
                 setDailyDebitAndCredit(dailyTransactions);
-                
+
                 const debitTransactions = processTransactions(dailyTransactions, "Debited");
                 setDailyDebit(debitTransactions);
-                
+
                 const creditTransactions = processTransactions(dailyTransactions, "Credited");
                 setDailyCredit(creditTransactions);
 
@@ -158,7 +180,7 @@ const FinanceDashboard = () => {
             maximumFractionDigits: 0
         }).format(value);
     };
-        const processTransactions = (transactions, type) => {
+    const processTransactions = (transactions, type) => {
         const filteredTransactions = transactions
             .filter(transaction => transaction.type === type)
             .map(transaction => {
@@ -167,20 +189,21 @@ const FinanceDashboard = () => {
                 const formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
                 return {
                     date: formattedDate,
-                    amount: parseFloat(transaction.amount.replace(/,/g, ''))
+                    amount: parseFloat(transaction.amount.replace(/,/g, '')),
+                    source: transaction.source
                 };
             });
 
         const groupedTransactions = filteredTransactions.reduce((acc, transaction) => {
             if (!acc[transaction.date]) {
-                acc[transaction.date] = 0;
+                acc[transaction.date] = { amount: 0, source: transaction.source };
             }
-            acc[transaction.date] += transaction.amount;
+            acc[transaction.date].amount += transaction.amount;
             return acc;
         }, {});
 
         return Object.entries(groupedTransactions)
-            .map(([date, amount]) => ({ date, amount }))
+            .map(([date, { amount, source }]) => ({ date, amount, source }))
             .sort((a, b) => new Date(a.date) - new Date(b.date));
     };
 
@@ -207,23 +230,6 @@ const FinanceDashboard = () => {
     }
 
 
-    const CustomDailyTool = ({ active, payload, label }) => {
-        if (active && payload && payload.length) {
-            const date = new Date(label);
-            const formattedDate = date.toLocaleDateString('en-GB', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric'
-            });
-            return (
-                <div className="bg-gray-800 text-white p-2 rounded">
-                    <p>Date: {formattedDate}</p>
-                    <p>Amount: ₹{payload[0].value.toFixed(2)}</p>
-                </div>
-            );
-        }
-        return null;
-    };
 
     const handleClick = () => {
         navigate('/daily', { state: { dailyDebitAndCredit } });
@@ -241,7 +247,7 @@ const FinanceDashboard = () => {
         });
         setCreditedTotal(CreditedTotal)
         setDebitedTotal(DebitedTotal)
-    } , [dailyDebitAndCredit])
+    }, [dailyDebitAndCredit])
 
     return (
         <div className="bg-gray-900 text-white p-4 sm:p-6 rounded-lg min-h-screen">
@@ -304,36 +310,37 @@ const FinanceDashboard = () => {
                 </Card>
 
                 <div onClick={handleClick} >
-                    <Card className="bg-gray-800 col-span-1">
-                        <CardHeader>Daily Debit</CardHeader>
-                        <CardContent>
-                            <ResponsiveContainer width="100%" height={100}>
-                                <LineChart data={dailyDebit}>
-                                    <XAxis dataKey="date" hide />
-                                    <YAxis hide />
-                                    <Tooltip content={<CustomDailyTool />} />
-                                    <Line type="monotone" dataKey="amount" stroke="#FF8042" strokeWidth={2} />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        </CardContent>
-                    </Card>
-                </div>
+                <Card className="bg-gray-800 col-span-1">
+                    <CardHeader>Daily Debit</CardHeader>
+                    <CardContent>
+                        <ResponsiveContainer width="100%" height={100}>
+                            <LineChart data={dailyDebit}>
+                                <XAxis dataKey="date" hide />
+                                <YAxis hide />
+                                <Tooltip content={<CustomDailyTool />} />
+                                <Line type="monotone" dataKey="amount" stroke="#FF8042" strokeWidth={2} />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </CardContent>
+                </Card>
+            </div>
 
-                <div onClick={handleClick} >
-                    <Card className="bg-gray-800 col-span-1">
-                        <CardHeader>Daily Credit</CardHeader>
-                        <CardContent>
-                            <ResponsiveContainer width="100%" height={100}>
-                                <LineChart data={dailyCredit}>
-                                    <XAxis dataKey="date" hide />
-                                    <YAxis hide />
-                                    <Tooltip content={<CustomDailyTool />} />
-                                    <Line type="monotone" dataKey="amount" stroke="#00C49F" strokeWidth={2} />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        </CardContent>
-                    </Card>
-                </div>
+            <div onClick={handleClick} >
+                <Card className="bg-gray-800 col-span-1">
+                    <CardHeader>Daily Credit</CardHeader>
+                    <CardContent>
+                        <ResponsiveContainer width="100%" height={100}>
+                            <LineChart data={dailyCredit}>
+                                <XAxis dataKey="date" hide />
+                                <YAxis hide />
+                                <Tooltip content={<CustomDailyTool />} />
+                                <Line type="monotone" dataKey="amount" stroke="#00C49F" strokeWidth={2} />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </CardContent>
+                </Card>
+            </div>
+
 
 
 
