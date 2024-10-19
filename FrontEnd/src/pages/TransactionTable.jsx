@@ -9,46 +9,44 @@ const TransactionTable = () => {
     const [sortDirection, setSortDirection] = useState("desc");
     const [filter, setFilter] = useState("all");
     const [dailyTransactions, setDailyTransactions] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [isTransactionsLoading, setIsTransactionsLoading] = useState(true);
     const [error, setError] = useState(null);
-
+    
     const location = useLocation();
     const dispatch = useDispatch();
     const userId = localStorage.getItem('uid');
+    
+    const [selectedDate, setSelectedDate] = useState(() => {
 
-    const currentDate = new Date();
-    const currentMonth = currentDate.getMonth() + 1;
-    const currentYear = currentDate.getFullYear();
-
-    useEffect(() => {
-        const stateData = location?.state?.dailyDebitAndCredit;
-        if (stateData && stateData.length > 0) {
-            setDailyTransactions(stateData);
-            setLoading(false);
+        if (location?.state?.date) {
+            return location.state.date;
         }
-    }, [location.state]);
+        const currentDate = new Date();
+        return `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+    });
+
 
     useEffect(() => {
         const fetchData = async () => {
-            if (!location?.state?.dailyDebitAndCredit && !dailyTransactions) {
-                setLoading(true);
-                setError(null);
-                try {
-                    const dailyResponse = await dispatch(
-                        fetchDailyTransactions({ userId, currentMonth, currentYear })
-                    ).unwrap();
-                    setDailyTransactions(dailyResponse.monthlyMessages);
-                    console.log(dailyResponse)
-                } catch (error) {
-                    setError('Failed to fetch daily transactions. Please try again later.');
-                } finally {
-                    setLoading(false);
-                }
+            const [year, month] = selectedDate.split('-');
+            const currentMonth = parseInt(month);
+            const currentYear = parseInt(year);
+            setIsTransactionsLoading(true);
+            setError(null);
+            try {
+                const dailyResponse = await dispatch(
+                    fetchDailyTransactions({ userId, currentMonth, currentYear })
+                ).unwrap();
+                setDailyTransactions(dailyResponse.monthlyMessages);
+            } catch (error) {
+                setError('Failed to fetch daily transactions. Please try again later.');
+            } finally {
+                setIsTransactionsLoading(false);
             }
         };
 
         fetchData();
-    }, [dispatch, userId, currentMonth, currentYear, location.state]);
+    }, [dispatch, userId, selectedDate]);
 
     const handleSort = (field) => {
         if (sortField === field) {
@@ -59,10 +57,14 @@ const TransactionTable = () => {
         }
     };
 
+    const handleDateChange = (event) => {
+        setSelectedDate(event.target.value);
+    };
+
+    // Memoized filtered and sorted transactions
     const filteredAndSortedTransactions = useMemo(() => {
         if (!dailyTransactions) return [];
 
-        // Sorting logic
         const sortedTransactions = [...dailyTransactions].sort((a, b) => {
             let comparison = 0;
             if (sortField === "amount") {
@@ -73,15 +75,14 @@ const TransactionTable = () => {
             return sortDirection === "asc" ? comparison : -comparison;
         });
 
-        // Filtering logic
         return sortedTransactions.filter(
             (transaction) => filter === "all" || transaction.type === filter
         );
     }, [dailyTransactions, sortField, sortDirection, filter]);
 
+    // Helper functions remain the same
     const formatDate = (dateString) => {
         const [datePart, timePart] = dateString.split(' ');
-
         const [day, month, year] = datePart.split('/');
         const date = new Date(`${year}-${month}-${day}T${timePart}`);
 
@@ -94,104 +95,160 @@ const TransactionTable = () => {
     };
 
     const formatAmount = (amount) => {
-        // Ensure the amount is a valid number
-        const parsedAmount = parseFloat(amount.replace(/,/g, '')); // Remove commas before parsing
+        const parsedAmount = parseFloat(amount.replace(/,/g, ''));
         if (isNaN(parsedAmount)) {
-            return "Invalid Amount"; // Return a fallback value if the amount is not valid
+            return "Invalid Amount";
         }
         return new Intl.NumberFormat("en-IN", {
             style: "currency",
             currency: "INR",
         }).format(parsedAmount);
     };
-    
-    return (
-        <div className="w-full p-6 bg-gray-900 shadow-xl">
-            {loading && <div className="text-center text-gray-400">Loading transactions...</div>}
-            {error && <div className="text-red-500">{error}</div>}
-            {!loading && !error && (
-                <>
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-2xl font-bold text-white">Daily Transactions</h2>
-                        <div className="flex gap-2">
-                            {["all", "Credited", "Debited"].map(type => (
-                                <button
-                                    key={type}
-                                    onClick={() => setFilter(type)}
-                                    className={`px-4 py-2 rounded-md ${filter === type
-                                        ? (type === "Credited" ? "bg-green-600" : type === "Debited" ? "bg-red-600" : "bg-blue-600")
-                                        : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                                        }`}
-                                >
-                                    {type.charAt(0).toUpperCase() + type.slice(1)}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
 
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-gray-200">
-                            <thead className="bg-gray-800">
-                                <tr>
-                                    {["date", "amount", "type"].map(field => (
-                                        <th
-                                            key={field}
-                                            className="px-4 py-3 text-left cursor-pointer hover:bg-gray-700"
-                                            onClick={() => handleSort(field)}
-                                        >
-                                            <div className="flex items-center gap-1">
-                                                {field.charAt(0).toUpperCase() + field.slice(1)}
-                                                {sortField === field ? (
-                                                    sortDirection === "asc" ? (
-                                                        <ArrowUp className="w-4 h-4" />
-                                                    ) : (
-                                                        <ArrowDown className="w-4 h-4" />
-                                                    )
-                                                ) : (
-                                                    <ArrowUpDown className="w-4 h-4" />
-                                                )}
-                                            </div>
-                                        </th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-700">
-                                {filteredAndSortedTransactions.map((transaction, index) => (
-                                    <tr
-                                        key={index}
-                                        className="hover:bg-gray-800 transition-colors"
-                                    >
-                                        <td className="px-4 py-3">
-                                            {formatDate(transaction.date)}
-                                        </td>
-                                        <td
-                                            className={`px-4 py-3 font-medium ${transaction.type === "Credited"
+    const generateDateOptions = () => {
+        const options = [];
+        const currentDate = new Date();
+        const currentYear = currentDate.getFullYear();
+        const currentMonth = currentDate.getMonth();
+
+        for (let year = currentYear; year >= currentYear - 2; year--) {
+            for (let month = 11; month >= 0; month--) {
+                if (year === currentYear && month > currentMonth) continue;
+                const dateString = `${year}-${String(month + 1).padStart(2, '0')}`;
+                const dateLabel = new Date(year, month).toLocaleString('default', { month: 'long', year: 'numeric' });
+                options.push(
+                    <option key={dateString} value={dateString}>
+                        {dateLabel}
+                    </option>
+                );
+            }
+        }
+
+        return options;
+    };
+
+    return (
+            <div className="w-full p-6 bg-gray-900 shadow-xl">
+            {/* Header section - Always visible */}
+            <div className="flex flex-col gap-4 mb-6">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                    <h2 className="text-2xl font-bold text-white">Daily Transactions</h2>
+                    <select
+                        value={selectedDate}
+                        onChange={handleDateChange}
+                        className="bg-gray-800 text-white border border-gray-700 rounded px-3 py-2 min-w-[200px]"
+                    >
+                        {generateDateOptions()}
+                    </select>
+                </div>
+                
+                <div className="flex flex-wrap gap-2">
+                    {["all", "Credited", "Debited"].map(type => (
+                        <button
+                            key={type}
+                            onClick={() => setFilter(type)}
+                            className={`px-4 py-2 rounded-md ${
+                                filter === type
+                                    ? (type === "Credited" 
+                                        ? "bg-green-600" 
+                                        : type === "Debited" 
+                                            ? "bg-red-600" 
+                                            : "bg-blue-600")
+                                    : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                            }`}
+                        >
+                            {type.charAt(0).toUpperCase() + type.slice(1)}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Transactions section - Conditionally rendered */}
+            <div className="overflow-x-auto">
+                <table className="w-full text-sm text-gray-200">
+                    <thead className="bg-gray-800">
+                        <tr>
+                            {["date", "amount", "type"].map(field => (
+                                <th
+                                    key={field}
+                                    className="px-4 py-3 text-left cursor-pointer hover:bg-gray-700"
+                                    onClick={() => handleSort(field)}
+                                >
+                                    <div className="flex items-center gap-1">
+                                        {field.charAt(0).toUpperCase() + field.slice(1)}
+                                        {sortField === field ? (
+                                            sortDirection === "asc" ? (
+                                                <ArrowUp className="w-4 h-4" />
+                                            ) : (
+                                                <ArrowDown className="w-4 h-4" />
+                                            )
+                                        ) : (
+                                            <ArrowUpDown className="w-4 h-4" />
+                                        )}
+                                    </div>
+                                </th>
+                            ))}
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-700">
+                        {isTransactionsLoading ? (
+                            <tr>
+                                <td colSpan="3" className="px-4 py-3 text-center text-gray-400">
+                                    Loading transactions...
+                                </td>
+                            </tr>
+                        ) : error ? (
+                            <tr>
+                                <td colSpan="3" className="px-4 py-3 text-center text-red-500">
+                                    {error}
+                                </td>
+                            </tr>
+                        ) : filteredAndSortedTransactions.length === 0 ? (
+                            <tr>
+                                <td colSpan="3" className="px-4 py-3 text-center text-gray-400">
+                                    No transactions found
+                                </td>
+                            </tr>
+                        ) : (
+                            filteredAndSortedTransactions.map((transaction, index) => (
+                                <tr
+                                    key={index}
+                                    className="hover:bg-gray-800 transition-colors"
+                                >
+                                    <td className="px-4 py-3">
+                                        {formatDate(transaction.date)}
+                                    </td>
+                                    <td
+                                        className={`px-4 py-3 font-medium ${
+                                            transaction.type === "Credited"
                                                 ? "text-green-400"
                                                 : "text-red-400"
-                                                }`}
-                                        >
-                                            {formatAmount(transaction.amount)}
-                                        </td>
-                                        <td className="px-4 py-3">
-                                            <span
-                                                className={`px-2 py-1 rounded-full text-xs font-medium ${transaction.type === "Credited"
+                                        }`}
+                                    >
+                                        {formatAmount(transaction.amount)}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        <span
+                                            className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                                transaction.type === "Credited"
                                                     ? "bg-green-900 text-green-300"
                                                     : "bg-red-900 text-red-300"
-                                                    }`}
-                                            >
-                                                {transaction.type}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                            }`}
+                                        >
+                                            {transaction.type}
+                                        </span>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
+            </div>
 
-                    <div className="mt-4 text-gray-400 text-sm">
-                        Showing {filteredAndSortedTransactions.length} transactions
-                    </div>
-                </>
+            {!isTransactionsLoading && !error && (
+                <div className="mt-4 text-gray-400 text-sm">
+                    Showing {filteredAndSortedTransactions.length} transactions
+                </div>
             )}
         </div>
     );

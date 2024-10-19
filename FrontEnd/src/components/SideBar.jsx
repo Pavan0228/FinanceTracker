@@ -21,7 +21,7 @@ import { getUser } from "../store/authSlice";
 const ProfileAvatar = memo(({ name }) => {
     const initials = name
         ?.split(' ')
-        .map(word => word[0])
+        .map(word => word[0]+word[1])
         .join('')
         .toUpperCase()
         .slice(0, 2) || 'U';
@@ -35,19 +35,18 @@ const ProfileAvatar = memo(({ name }) => {
         return `hsl(${hue}, 70%, 60%)`;
     };
 
-    const backgroundColor = stringToColor(name || 'User');
+    // const backgroundColor = stringToColor(name || 'User');
 
     return (
         <div className="relative">
             <div 
-                className="w-9 h-9 rounded-full ring-2 ring-gray-700 ring-offset-2 ring-offset-gray-800 overflow-hidden"
-                style={{ backgroundColor }}
+                className="w-9 h-9 rounded-full ring-2 ring-gray-700 ring-offset-2 ring-offset-gray-800 overflow-hidden bg-blue-500"
+                // style={{ backgroundColor }}
             >
                 <div className="w-full h-full flex items-center justify-center text-white font-medium">
                     {initials}
                 </div>
             </div>
-            <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full ring-1 ring-white"></div>
         </div>
     );
 });
@@ -173,10 +172,9 @@ const Sidebar = () => {
                         className={`flex flex-col transition-all duration-300 ease-in-out overflow-hidden
                             ${isCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'}`}
                     >
-                        <span className="text-sm font-medium text-gray-200 whitespace-nowrap">
+                        <span className="text-lg capitalize font-medium text-gray-200 whitespace-nowrap ">
                             {userData?.payload?.name || "User"}
                         </span>
-                        <span className="text-xs text-gray-400">Active</span>
                     </div>
                 </div>
             </div>
