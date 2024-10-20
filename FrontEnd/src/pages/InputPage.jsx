@@ -49,7 +49,7 @@ const InputPage = () => {
     };
 
     const isDebited = type === 'Debited';
-    const primaryColor = isDebited ? 'orange' : 'emerald';
+    const primaryColor = isDebited ? 'orange' : 'green';
     const transitionClasses = 'transition-colors duration-300 ease-in-out';
 
     return (
@@ -103,6 +103,9 @@ const InputPage = () => {
                             onChange={(e) => setDay(e.target.value)}
                             required
                             className={`w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-${primaryColor}-500 ${transitionClasses}`}
+                            style={{
+                                "--tw-ring-color": primaryColor, // Set ring color dynamically
+                            }}
                             placeholder="Enter day (1-31)"
                         />
                     </div>
@@ -115,6 +118,9 @@ const InputPage = () => {
                             onChange={(e) => setAmount(e.target.value)}
                             required
                             className={`w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-${primaryColor}-500 ${transitionClasses}`}
+                            style={{
+                                "--tw-ring-color": primaryColor, // Set ring color dynamically
+                            }}
                             placeholder="Enter amount"
                             step="0.01"
                         />
