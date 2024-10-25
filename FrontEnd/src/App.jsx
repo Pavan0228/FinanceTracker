@@ -34,8 +34,6 @@ function App() {
             <Route path="/yearly" element={<ProtectedRoute element={<Yearly />} />} />  
             <Route path="/input" element={<ProtectedRoute element={<InputPage />} />} />  
             <Route path="/user" element={<ProtectedRoute element={<UserPage />} />} />  
-
-
             <Route path="/Daily" element={<ProtectedRoute element={<TransactionTable />} />} />  
           </Routes>
         </div>

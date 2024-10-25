@@ -1,5 +1,5 @@
 import React, { useEffect, useState, memo } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import {Link, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import {
     LayoutDashboard,
@@ -11,7 +11,7 @@ import {
     ChevronRight,
     X,
     Menu,
-    PlusCircle
+    PlusCircle,
 } from 'lucide-react';
 
 import image from "../assets/CroppedImage.png";
@@ -219,17 +219,18 @@ const Sidebar = () => {
                         ))}
                     </ul>
                 </nav>
-
-                <div className="p-4 border-t border-gray-700/50">
-                    <div className={`flex items-center transition-all duration-300 ease-in-out ${isCollapsed ? 'justify-center' : 'space-x-3'}`}>
-                        <ProfileAvatar name={userData?.payload?.name || "User"} profile={userData?.payload?.profile} />
-                        <div className={`flex flex-col transition-all duration-300 ease-in-out overflow-hidden ${isCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'}`}>
-                            <span className="text-lg capitalize font-medium text-gray-200 whitespace-nowrap">
-                                {userData?.payload?.name || "User"}
-                            </span>
+                    <div className="p-4 border-t border-gray-700/50" >
+                <Link to="/user">
+                        <div className={`flex items-center transition-all duration-300 ease-in-out ${isCollapsed ? 'justify-center' : 'space-x-3'}`}>
+                            <ProfileAvatar name={userData?.payload?.name || "User"} profile={userData?.payload?.profile} />
+                            <div className={`flex flex-col transition-all duration-300 ease-in-out overflow-hidden ${isCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'}`}>
+                                <span className="text-lg capitalize font-medium text-gray-200 whitespace-nowrap">
+                                    {userData?.payload?.name || "User"}
+                                </span>
+                            </div>
                         </div>
+                </Link>
                     </div>
-                </div>
             </div>
         </>
     );
