@@ -8,6 +8,9 @@ import {
     getYearlyMessages,
 } from "../store/expensesSlice";
 import { useDispatch } from "react-redux";
+import { ToastContainer, toast } from 'react-toastify'; 
+import 'react-toastify/dist/ReactToastify.css'; // Import CSS for toast notifications
+
 
 const DownloadFiles = () => {
     const [jsonData, setJsonData] = useState([]);
@@ -23,6 +26,23 @@ const DownloadFiles = () => {
         fetchMonthlyMessages();
     }, [userId, dispatch, selectedMonth, selectedYear]);
 
+    const sortMessagesByDate = (messages) => {
+        return [...messages].sort((a, b) => {
+            const [dayA, monthA, yearRestA] = a.date.split('/');
+            const [yearA, timeA] = yearRestA.split(' ');
+            const [hoursA, minutesA, secondsA] = timeA.split(':');
+            
+            const [dayB, monthB, yearRestB] = b.date.split('/');
+            const [yearB, timeB] = yearRestB.split(' ');
+            const [hoursB, minutesB, secondsB] = timeB.split(':');
+            
+            const dateA = new Date(yearA, monthA - 1, dayA, hoursA, minutesA, secondsA);
+            const dateB = new Date(yearB, monthB - 1, dayB, hoursB, minutesB, secondsB);
+            
+            return dateB - dateA;
+        });
+    };
+
     const fetchDailyData = async () => {
         const dailyResponse = await dispatch(
             fetchDailyTransactions({
@@ -31,19 +51,29 @@ const DownloadFiles = () => {
                 currentYear: selectedYear,
             })
         ).unwrap();
-        return dailyResponse.monthlyMessages;
+        return sortMessagesByDate(dailyResponse.monthlyMessages);
     }
 
     const fetchYearlyData = async () => {
-        const yearlyResponse = await dispatch(
-            getYearlyMessages({
-                userId,
-                currentYear: selectedYear,
-            })
-        ).unwrap();
-        console.log(yearlyResponse)
-        return yearlyResponse
-    }
+        try {
+            const yearlyResponse = await dispatch(
+                getYearlyMessages({
+                    userId,
+                    currentYear: selectedYear,
+                })
+            ).unwrap();
+            
+            return sortMessagesByDate(yearlyResponse);
+        } catch (error) {
+            if (error === 'No messages found for this user' || 
+                error.message === 'No messages found for this user') {
+                toast.info('No messages available to download for selected year');
+            } else {
+                toast.error('Failed to fetch messages');
+            }
+            return null;
+        }
+    };
 
     const fetchMonthlyMessages = async () => {
         setIsLoading(true);
@@ -81,6 +111,11 @@ const DownloadFiles = () => {
                 ? `yearly_transactions_${selectedYear}.xlsx`
                 : `transactions_${selectedMonth}_${selectedYear}.xlsx`;
 
+                if(data.length === 0) {
+                    toast.info("No messages available to download for selected month");
+                    return;
+                }
+
             const worksheet = XLSX.utils.json_to_sheet(data);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "Transactions");
@@ -117,6 +152,11 @@ const DownloadFiles = () => {
                 ? `Yearly Transactions for ${selectedYear}`
                 : `Transactions for ${new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'long' })} ${selectedYear}`;
 
+                if(data.length === 0) {
+                    toast.info("No messages available to download for selected month");
+                    return;
+                }
+
             const doc = generatePDF(data, title);
             doc.save(filename);
         } catch (error) {
@@ -133,6 +173,11 @@ const DownloadFiles = () => {
             const title = isYearly
                 ? `Yearly Transactions for ${selectedYear}`
                 : `Transactions for ${new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'long' })} ${selectedYear}`;
+
+                if(data.length === 0) {
+                    toast.info("No messages available to download for selected month");
+                    return;
+                }
 
             const doc = generatePDF(data, title);
             window.open(doc.output("bloburl"), "_blank");
@@ -279,6 +324,7 @@ const DownloadFiles = () => {
                     </div>
                 </div>
             </div>
+            <ToastContainer />
         </div>
     );
 };
