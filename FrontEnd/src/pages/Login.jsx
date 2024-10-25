@@ -54,7 +54,7 @@ const Login = () => {
 
             setTimeout(() => {
                 navigate("/dashboard");
-            }, 1500); // Change to your dashboard route
+            }, 2000); // Change to your dashboard route
 
         } catch (error) {
             console.error("Login failed:", error);
