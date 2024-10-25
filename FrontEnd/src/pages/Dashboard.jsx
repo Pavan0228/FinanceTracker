@@ -306,53 +306,52 @@ const FinanceDashboard = () => {
 
 
     return (
-        <div className="bg-gray-900 text-white min-h-screen p-3 md:p-4 lg:p-6">
+        <div className="bg-gray-900 text-white min-h-screen p-4 lg:p-6">
             {/* Header Section */}
-            <div className="flex flex-col space-y-4 lg:space-y-0 lg:flex-row lg:items-center lg:justify-between mb-6">
-                {/* Logo and Title */}
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
+                {/* Logo */}
                 <div className="flex items-center">
-                    <h1 className="text-xl md:text-2xl font-bold">PennyWise</h1>
+                    <h1 className="text-2xl lg:text-3xl font-bold">PennyWise</h1>
                 </div>
     
-                {/* Date Selector and Limit Button */}
-                <div className="flex flex-col space-y-3 sm:flex-row sm:space-y-0 sm:space-x-4">
+                {/* Date and Limit Controls */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
                     <select
                         value={selectedDate}
                         onChange={handleDateChange}
-                        className="bg-gray-800 text-white border border-gray-700 rounded px-2 py-1 w-full sm:w-auto"
+                        className="bg-gray-800 text-white border border-gray-700 rounded px-3 py-2 w-full sm:w-auto text-sm"
                     >
                         {generateDateOptions()}
                     </select>
                     <button
                         onClick={() => setShowLimitModal(true)}
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition duration-200 w-full sm:w-auto"
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition duration-200 w-full sm:w-auto text-sm"
                     >
                         Set Monthly Limit
                     </button>
                 </div>
     
-                {/* Utils Section */}
-                <div className="flex items-center justify-between sm:justify-end space-x-4">
-                    <div className="flex items-center space-x-2">
+                {/* Utils */}
+                <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
                         <Clock10 className="w-5 h-5" />
-                        <p className="text-xs md:text-sm hover:text-green-300 hidden sm:block">
+                        <span className="text-sm text-gray-300">
                             {new Date().toLocaleDateString('en-US', { 
-                                weekday: 'long', 
-                                year: 'numeric', 
-                                month: 'long', 
-                                day: 'numeric' 
+                                day: 'numeric',
+                                month: 'short',
+                                year: 'numeric'
                             })}
-                        </p>
+                        </span>
                     </div>
                     <div className="relative">
                         <FileSpreadsheet
                             size={20}
-                            className="cursor-pointer hover:text-green-400 transition-colors duration-200"
+                            className="cursor-pointer hover:text-green-400"
                             onMouseEnter={() => setShowText(true)}
                             onMouseLeave={() => setShowText(false)}
                         />
                         {showText && (
-                            <div className="absolute right-0 mt-2 py-2 px-4 bg-gray-800 text-white text-xs rounded-md shadow-lg z-10">
+                            <div className="absolute right-0 mt-2 py-1 px-2 bg-gray-800 text-xs rounded shadow-lg z-10">
                                 Download as Excel
                             </div>
                         )}
@@ -365,47 +364,41 @@ const FinanceDashboard = () => {
                             onMouseEnter={() => setShowLogout(true)}
                             onMouseLeave={() => setShowLogout(false)}
                         />
-                        {showLogout && (
-                            <div className="absolute right-0 mt-2 py-2 px-4 bg-gray-800 text-white text-xs rounded-md shadow-lg z-10">
-                                Logout
-                            </div>
-                        )}
                     </div>
                 </div>
             </div>
     
-            {/* Modal */}
             {showLimitModal && <LimitModal />}
     
-            {/* Main Grid Layout */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* Summary Card */}
-                <div className="bg-orange-500 rounded-lg p-4 md:col-span-2 lg:col-span-1">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Main Content Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Summary Cards Row */}
+                <div className="bg-orange-500 rounded-xl p-6 lg:col-span-1">
+                    <div className="grid grid-cols-2 gap-6">
                         <div>
-                            <h2 className="text-lg font-bold mb-2">Total Spendings</h2>
+                            <h2 className="text-base font-semibold mb-2">Total Spendings</h2>
                             <p className="text-2xl font-bold">₹{totalAmounts.totalDebit.toLocaleString()}</p>
                         </div>
                         <div>
-                            <h2 className="text-lg font-bold mb-2">Total Earnings</h2>
+                            <h2 className="text-base font-semibold mb-2">Total Earnings</h2>
                             <p className="text-2xl font-bold">₹{totalAmounts.totalCredit.toLocaleString()}</p>
                         </div>
                         <div>
-                            <h2 className="text-lg font-bold mb-2">Monthly Earning</h2>
+                            <h2 className="text-base font-semibold mb-2">Monthly Earning</h2>
                             <p className="text-2xl font-bold">₹{CreditedTotal}</p>
                         </div>
                         <div>
-                            <h2 className="text-lg font-bold mb-2">Monthly Expense</h2>
+                            <h2 className="text-base font-semibold mb-2">Monthly Expense</h2>
                             <p className="text-2xl font-bold">₹{DebitedTotal}</p>
                         </div>
                     </div>
                 </div>
     
-                {/* Daily Charts */}
-                <div className="bg-gray-800 rounded-lg p-4 cursor-pointer" onClick={handleClick}>
-                    <h3 className="text-lg font-bold mb-2">Daily Debit</h3>
-                    <div className="h-[100px] w-full">
-                        <ResponsiveContainer>
+                {/* Daily Transaction Charts */}
+                <div className="bg-gray-800 rounded-xl p-6 cursor-pointer hover:bg-gray-750 transition-colors" onClick={handleClick}>
+                    <h3 className="text-lg font-semibold mb-4">Daily Debit</h3>
+                    <div className="h-32">
+                        <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={dailyDebit}>
                                 <XAxis dataKey="date" hide />
                                 <YAxis hide />
@@ -416,10 +409,10 @@ const FinanceDashboard = () => {
                     </div>
                 </div>
     
-                <div className="bg-gray-800 rounded-lg p-4 cursor-pointer" onClick={handleClick}>
-                    <h3 className="text-lg font-bold mb-2">Daily Credit</h3>
-                    <div className="h-[100px] w-full">
-                        <ResponsiveContainer>
+                <div className="bg-gray-800 rounded-xl p-6 cursor-pointer hover:bg-gray-750 transition-colors" onClick={handleClick}>
+                    <h3 className="text-lg font-semibold mb-4">Daily Credit</h3>
+                    <div className="h-32">
+                        <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={dailyCredit}>
                                 <XAxis dataKey="date" hide />
                                 <YAxis hide />
@@ -430,11 +423,11 @@ const FinanceDashboard = () => {
                     </div>
                 </div>
     
-                {/* Yearly Chart */}
-                <div className="bg-gray-800 rounded-lg p-4 md:col-span-2">
-                    <h3 className="text-lg font-bold mb-2">All Year Income & Expenses</h3>
-                    <div className="h-[300px] w-full">
-                        <ResponsiveContainer>
+                {/* Yearly Overview Chart */}
+                <div className="bg-gray-800 rounded-xl p-6 lg:col-span-2">
+                    <h3 className="text-lg font-semibold mb-4">Annual Income & Expenses</h3>
+                    <div className="h-80">
+                        <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={monthlyData}>
                                 <XAxis dataKey="name" />
                                 <YAxis tickFormatter={(value) => formatCurrency(value)} />
@@ -448,16 +441,16 @@ const FinanceDashboard = () => {
                 </div>
     
                 {/* Monthly Spending Pie Chart */}
-                <div className="bg-gray-800 rounded-lg p-4">
-                    <h3 className="text-lg font-bold mb-2">Monthly Spending</h3>
-                    <div className="h-[250px] w-full">
-                        <ResponsiveContainer>
+                <div className="bg-gray-800 rounded-xl p-6">
+                    <h3 className="text-lg font-semibold mb-4">Monthly Spending</h3>
+                    <div className="h-64">
+                        <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                                 <Pie
                                     data={getMonthlyDebitData()}
                                     cx="50%"
                                     cy="50%"
-                                    outerRadius={60}
+                                    outerRadius={80}
                                     fill="#8884d8"
                                     dataKey="value"
                                     label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
@@ -470,16 +463,17 @@ const FinanceDashboard = () => {
                                 <Legend />
                             </PieChart>
                         </ResponsiveContainer>
-                        <div className="text-center mt-4 space-y-1">
-                            <p className="text-sm">Monthly Limit: ₹{monthlyLimit.toLocaleString()}</p>
-                            <p className="text-sm">Spent: <span className="text-red-500">₹{monthlyDebit.toLocaleString()}</span></p>
-                            <p className="text-sm">Remaining: ₹{Math.max(monthlyLimit - monthlyDebit, 0).toLocaleString()}</p>
-                            <p className="text-sm">Credited: <span className="text-green-500">₹{monthlyCredit.toLocaleString()}</span></p>
-                        </div>
+                    </div>
+                    <div className="mt-4 space-y-2 text-center">
+                        <p className="font-medium">Monthly Limit: ₹{monthlyLimit.toLocaleString()}</p>
+                        <p className="font-medium">Spent: <span className="text-red-500">₹{monthlyDebit.toLocaleString()}</span></p>
+                        <p className="font-medium">Remaining: ₹{Math.max(monthlyLimit - monthlyDebit, 0).toLocaleString()}</p>
+                        <p className="font-medium">Credited: <span className="text-green-500">₹{monthlyCredit.toLocaleString()}</span></p>
                     </div>
                 </div>
             </div>
         </div>
     );
-}
+    }
+
 export default FinanceDashboard;
