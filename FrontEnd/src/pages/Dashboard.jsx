@@ -308,7 +308,7 @@ const FinanceDashboard = () => {
     return (
         <div className="bg-gray-900 text-white min-h-screen p-4 lg:p-6">
             {/* Header Section */}
-            <div className="flex flex-col lg:flex-row justify-center items-center lg:items-start lg:items-center gap-4 mb-6 ">
+            <div className="flex flex-col lg:flex-row justify-center items-center lg:items-start  gap-4 mb-6 ">
                 {/* Logo */}
                 <div className="flex items-center">
                     <h1 className="text-2xl lg:text-3xl font-bold">PennyWise</h1>
