@@ -308,14 +308,14 @@ const FinanceDashboard = () => {
     return (
         <div className="bg-gray-900 text-white min-h-screen p-4 lg:p-6">
             {/* Header Section */}
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
+            <div className="flex flex-col lg:flex-row justify-center items-center lg:items-start lg:items-center gap-4 mb-6 ">
                 {/* Logo */}
                 <div className="flex items-center">
                     <h1 className="text-2xl lg:text-3xl font-bold">PennyWise</h1>
                 </div>
     
                 {/* Date and Limit Controls */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                <div className="flex flex-row sm:flex-row items-start sm:items-center gap-3">
                     <select
                         value={selectedDate}
                         onChange={handleDateChange}
@@ -325,14 +325,14 @@ const FinanceDashboard = () => {
                     </select>
                     <button
                         onClick={() => setShowLimitModal(true)}
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition duration-200 w-full sm:w-auto text-sm"
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition duration-200 w-full sm:w-auto text-sm whitespace-nowrap"
                     >
                         Set Monthly Limit
                     </button>
                 </div>
     
                 {/* Utils */}
-                <div className="flex items-center gap-4">
+                <div className="flex  gap-4">
                     <div className="flex items-center gap-2">
                         <Clock10 className="w-5 h-5" />
                         <span className="text-sm text-gray-300">
