@@ -373,23 +373,23 @@ const FinanceDashboard = () => {
             {/* Main Content Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Summary Cards Row */}
-                <div className="bg-orange-500 rounded-xl p-6 lg:col-span-1">
-                    <div className="grid grid-cols-2 gap-2 lg:gap-5">
+                <div className="bg-orange-500 rounded-xl p-6 lg:col-span-1 flex justify-evenly">
+                    <div className="grid grid-cols-2   gap-2 gap-x-10  lg:gap-5">
                         <div>
-                            <h1 className="xl:text-lg md:text-base text-xs md:whitespace-nowrap font-semibold ">Total Spendings</h1>
-                            <p className="xl:text-3xl md:text-2xl text-sm font-bold">₹{totalAmounts.totalDebit.toLocaleString()}</p>
+                            <h1 className="xl:text-lg md:text-base text-lg md:whitespace-nowrap font-semibold ">Total Spendings</h1>
+                            <p className="xl:text-3xl md:text-2xl text-xl font-bold">₹{totalAmounts.totalDebit.toLocaleString()}</p>
                         </div>
                         <div>
-                            <h1 className="xl:text-lg md:text-base text-xs md:whitespace-nowrap font-semibold ">Total Earnings</h1>
-                            <p className="xl:text-3xl md:text-2xl text-sm font-bold">₹{totalAmounts.totalCredit.toLocaleString()}</p>
+                            <h1 className="xl:text-lg md:text-base text-lg md:whitespace-nowrap font-semibold ">Total Earnings</h1>
+                            <p className="xl:text-3xl md:text-2xl text-xl font-bold">₹{totalAmounts.totalCredit.toLocaleString()}</p>
                         </div>
                         <div>
-                            <h2 className="xl:text-lg md:text-base text-xs md:whitespace-nowrap font-semibold  ">Monthly Earning</h2>
-                            <p className="xl:text-3xl md:text-2xl text-sm font-bold">₹{CreditedTotal}</p>
+                            <h2 className="xl:text-lg md:text-base text-lg md:whitespace-nowrap font-semibold  ">Monthly Earning</h2>
+                            <p className="xl:text-3xl md:text-2xl text-xl font-bold">₹{CreditedTotal}</p>
                         </div>
                         <div>
-                            <h2 className="xl:text-lg md:text-base text-xs md:whitespace-nowrap font-semibold ">Monthly Expense</h2>
-                            <p className="xl:text-3xl md:text-2xl text-sm font-bold">₹{DebitedTotal}</p>
+                            <h2 className="xl:text-lg md:text-base text-lg md:whitespace-nowrap font-semibold ">Monthly Expense</h2>
+                            <p className="xl:text-3xl md:text-2xl text-xl font-bold">₹{DebitedTotal}</p>
                         </div>
                     </div>
                 </div>
