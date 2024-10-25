@@ -2,6 +2,8 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { toast } from "react-toastify";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const initialState = {
     user: null,
     loading: false,
@@ -14,12 +16,9 @@ export const login = createAsyncThunk(
     "auth/login",
     async ({ idToken }, { rejectWithValue }) => {
         try {
-            const response = await axios.post(
-                "http://localhost:3000/api/auth/login",
-                {
-                    idToken,
-                }
-            );
+            const response = await axios.post(`${API_URL}/api/auth/login`, {
+                idToken,
+            });
 
             const { accessToken, uid } = response.data;
 
@@ -41,9 +40,7 @@ export const getUser = createAsyncThunk(
     "auth/getUser",
     async ({ userId }, { rejectWithValue }) => {
         try {
-            const response = await axios.get(
-                `http://localhost:3000/api/auth/${userId}`
-            );
+            const response = await axios.get(`${API_URL}/api/auth/${userId}`);
             return response.data;
         } catch (error) {
             console.log("Get user error", error);
@@ -69,7 +66,7 @@ const authSlice = createSlice({
                 state.loading = false;
                 state.user = action.payload.user;
                 state.token = action.payload.accessToken;
-                state.userId = action.payload.uid; // Storing uid
+                state.userId = action.payload.uid;
                 toast.success("Login successful!");
             })
             .addCase(login.rejected, (state, action) => {

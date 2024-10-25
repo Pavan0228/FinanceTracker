@@ -1,12 +1,15 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
+const API_URL = import.meta.env.VITE_API_URL;
+console.log(API_URL,"url is ")
+
 export const fetchMonthlySummary = createAsyncThunk(
     "expenses/fetchMonthlySummary",
     async (userId, { rejectWithValue }) => {
         try {
             const response = await axios.get(
-                `http://localhost:3000/api/expense/allMonthSummary/${userId}/2024`
+                `${API_URL}/api/expense/allMonthSummary/${userId}/2024`
             );
             return response.data;
         } catch (error) {
@@ -22,7 +25,7 @@ export const fetchTotalAmounts = createAsyncThunk(
     async (userId, { rejectWithValue }) => {
         try {
             const response = await axios.get(
-                `http://localhost:3000/api/expense/${userId}/total`
+                `${API_URL}/api/expense/${userId}/total`
             );
             return response.data;
         } catch (error) {
@@ -38,7 +41,7 @@ export const fetchMonthlyDebitCredit = createAsyncThunk(
     async ({ userId, currentMonth, currentYear }, { rejectWithValue }) => {
         try {
             const response = await axios.get(
-                `http://localhost:3000/api/expense/${userId}/monthlyDebitCredit/${currentMonth}/${currentYear}`
+                `${API_URL}/api/expense/${userId}/monthlyDebitCredit/${currentMonth}/${currentYear}`
             );
             return response.data;
         } catch (error) {
@@ -54,9 +57,8 @@ export const fetchDailyTransactions = createAsyncThunk(
     async ({ userId, currentMonth, currentYear }, { rejectWithValue }) => {
         try {
             const response = await axios.get(
-                `http://localhost:3000/api/expense/${userId}/monthly/messages/${currentMonth}/${currentYear}`
+                `${API_URL}/api/expense/${userId}/monthly/messages/${currentMonth}/${currentYear}`
             );
-            
             return response.data;
         } catch (error) {
             return rejectWithValue(
@@ -71,7 +73,7 @@ export const getYearlyMessages = createAsyncThunk(
     async ({ userId, currentYear }, { rejectWithValue }) => {
         try {
             const response = await axios.get(
-                `http://localhost:3000/api/expense/${userId}/messages/${currentYear}`
+                `${API_URL}/api/expense/${userId}/messages/${currentYear}`
             );
             return response.data.data;
         } catch (error) {
@@ -80,7 +82,7 @@ export const getYearlyMessages = createAsyncThunk(
             );
         }
     }
-) 
+);
 
 const initialState = {
     monthlyData: null,
@@ -102,7 +104,6 @@ const expensesSlice = createSlice({
     reducers: {},
     extraReducers: (builder) => {
         builder
-            // Monthly Summary
             .addCase(fetchMonthlySummary.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -115,7 +116,6 @@ const expensesSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload;
             })
-            // Total Amounts
             .addCase(fetchTotalAmounts.pending, (state) => {
                 state.loading = true;
             })
@@ -128,7 +128,6 @@ const expensesSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload;
             })
-            // Monthly Debit/Credit
             .addCase(fetchMonthlyDebitCredit.pending, (state) => {
                 state.loading = true;
             })
@@ -141,7 +140,6 @@ const expensesSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload;
             })
-            // Daily Transactions
             .addCase(fetchDailyTransactions.pending, (state) => {
                 state.loading = true;
             })
@@ -161,7 +159,6 @@ const expensesSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload;
             })
-            // Yearly Messages
             .addCase(getYearlyMessages.pending, (state) => {
                 state.loading = true;
             })
@@ -173,14 +170,13 @@ const expensesSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload;
             });
-
     },
 });
 
 export default expensesSlice.reducer;
 
 const processMonthlyData = (data) => {
-    return data; 
+    return data;
 };
 
 const processTransactions = (transactions, type) => {

@@ -21,6 +21,7 @@ const InputPage = () => {
         'Debited',
         'Credited'
     ];
+    const API_URL = import.meta.env.VITE_API_URL;
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -30,7 +31,7 @@ const InputPage = () => {
         const date = `${day.padStart(2, '0')}/${(months.indexOf(month) + 1).toString().padStart(2, '0')}/${year}`;
 
         try {
-            const response = await axios.post(`http://localhost:3000/api/addInput/${userId}/input/${monthNumber}/${year}`, {
+            const response = await axios.post(`${API_URL}/api/addInput/${userId}/input/${monthNumber}/${year}`, {
                 amount: amount.toString(),
                 date,
                 type,

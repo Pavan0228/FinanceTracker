@@ -6,6 +6,9 @@ import { fetchDailyTransactions, fetchMonthlyDebitCredit, fetchMonthlySummary, f
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
+
+const API_URL = import.meta.env.VITE_API_URL;
+
 // Custom Card components
 const Card = ({ className, children }) => (
     <div className={`rounded-lg p-4 ${className}`}>{children}</div>
@@ -70,7 +73,7 @@ const FinanceDashboard = () => {
     useEffect(() => {
         const fetchMonthlyLimit = async () => {
             try {
-                const response = await axios.get(`http://localhost:3000/api/monthly/user/${userId}/monthly-limit`);
+                const response = await axios.get(`${API_URL}/api/monthly/user/${userId}/monthly-limit`);
                 const currentYear = new Date().getFullYear();
                 const currentMonth = new Date().getMonth() + 1;
                 setMonthlyLimit(response.data.data[currentYear][currentMonth].limit);
@@ -132,7 +135,7 @@ const FinanceDashboard = () => {
         const currentYear = new Date().getFullYear();
 
         try {
-            const response = await axios.post(`http://localhost:3000/api/monthly/user/${userId}/monthly-limit`, {
+            const response = await axios.post(`${API_URL}/api/monthly/user/${userId}/monthly-limit`, {
                 limit: newLimit,
                 month: currentMonth,
                 year: currentYear,
