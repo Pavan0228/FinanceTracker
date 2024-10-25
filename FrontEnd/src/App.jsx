@@ -10,6 +10,7 @@ import SideBar from "./components/SideBar"; // Import the new Sidebar component
 import HelpPage from './pages/Help';
 import Yearly from './pages/Yearly';
 import InputPage from './pages/InputPage';
+import UserPage from './pages/UserPage';
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
             <Route path="/Help" element={<ProtectedRoute element={<HelpPage />} />} />  
             <Route path="/yearly" element={<ProtectedRoute element={<Yearly />} />} />  
             <Route path="/input" element={<ProtectedRoute element={<InputPage />} />} />  
+            <Route path="/user" element={<ProtectedRoute element={<UserPage />} />} />  
 
 
             <Route path="/Daily" element={<ProtectedRoute element={<TransactionTable />} />} />  

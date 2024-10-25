@@ -41,6 +41,7 @@ export const getUser = createAsyncThunk(
     async ({ userId }, { rejectWithValue }) => {
         try {
             const response = await axios.get(`${API_URL}/api/auth/${userId}`);
+            console.log(response.data)
             return response.data;
         } catch (error) {
             console.log("Get user error", error);

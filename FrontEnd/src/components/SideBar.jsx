@@ -18,10 +18,11 @@ import image from "../assets/CroppedImage.png";
 import { getUser } from "../store/authSlice";
 
 // Profile Avatar Component
-const ProfileAvatar = memo(({ name }) => {
+// Profile Avatar Component
+const ProfileAvatar = memo(({ name, profile }) => {
     const initials = name
         ?.split(' ')
-        .map(word => word[0] + word[1])
+        .map(word => word[0])
         .join('')
         .toUpperCase()
         .slice(0, 2) || 'U';
@@ -29,32 +30,45 @@ const ProfileAvatar = memo(({ name }) => {
     return (
         <div className="relative">
             <div className="w-9 h-9 rounded-full ring-2 ring-gray-700 ring-offset-2 ring-offset-gray-800 overflow-hidden bg-blue-500">
-                <div className="w-full h-full flex items-center justify-center text-white font-medium">
-                    {initials}
-                </div>
+                {profile ? (
+                    <img
+                        src={profile}
+                        alt={name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.parentElement.querySelector('.initials-fallback').style.display = 'flex';
+                        }}
+                    />
+                ) : (
+                    <div className="initials-fallback w-full h-full flex items-center justify-center text-white font-medium">
+                        {initials}
+                    </div>
+                )}
             </div>
         </div>
     );
 });
 
+
 // Logo Component
 const Logo = memo(({ isCollapsed }) => (
     <div className={`flex items-center transition-all duration-300 ease-in-out
-        ${isCollapsed ? 'w-full justify-center' : 'gap-3'}`}>
+            ${isCollapsed ? 'w-full justify-center' : 'gap-3'}`}>
         <div className="min-w-[32px] h-8 flex items-center justify-center">
             <img
                 src={image}
                 alt="Logo"
                 className={`transition-all duration-300 ease-in-out
-                    ${isCollapsed ? 'w-6 h-6' : 'w-8 h-8'} 
-                    object-contain hover:scale-105`}
+                        ${isCollapsed ? 'w-6 h-6' : 'w-8 h-8'} 
+                        object-contain hover:scale-105`}
             />
         </div>
         <h1
             className={`text-xl font-bold text-white
-                bg-clip-text transition-all duration-300 ease-in-out 
-                overflow-hidden whitespace-nowrap
-                ${isCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'}`}
+                    bg-clip-text transition-all duration-300 ease-in-out 
+                    overflow-hidden whitespace-nowrap
+                    ${isCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'}`}
         >
             PennyWise
         </h1>
@@ -65,20 +79,20 @@ const Logo = memo(({ isCollapsed }) => (
 const SidebarItem = memo(({ icon: Icon, text, path, isActive, onClick, isCollapsed }) => (
     <li
         className={`flex items-center p-3 rounded-lg cursor-pointer
-            transition-all duration-300 ease-in-out transform
-            ${isActive
+                transition-all duration-300 ease-in-out transform
+                ${isActive
                 ? "bg-gray-700 text-white shadow-lg translate-x-2"
                 : "text-gray-400 hover:bg-gray-700/50 hover:text-white hover:translate-x-2"
             }
-            ${isCollapsed ? 'justify-center' : ''}`}
+                ${isCollapsed ? 'justify-center' : ''}`}
         onClick={onClick}
     >
         <Icon className={`w-6 h-6 transition-all duration-300 ease-in-out
-            ${!isCollapsed ? 'mr-3' : 'transform hover:scale-110'}`}
+                ${!isCollapsed ? 'mr-3' : 'transform hover:scale-110'}`}
         />
         <span
             className={`text-sm font-medium whitespace-nowrap overflow-hidden transition-all duration-300 ease-in-out
-                ${isCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'}`}
+                    ${isCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'}`}
         >
             {text}
         </span>
@@ -137,8 +151,8 @@ const Sidebar = () => {
         <button
             onClick={() => setIsMobileOpen(true)}
             className="lg:hidden fixed top-1 left-4 z-20 p-2 rounded-lg bg-gray-800-80 
-                hover:bg-gray-700 transition-all duration-300 ease-in-out transform 
-                hover:scale-105 active:scale-95 shadow-lg border border-white-10"
+                    hover:bg-gray-700 transition-all duration-300 ease-in-out transform 
+                    hover:scale-105 active:scale-95 shadow-lg border border-white-10"
         >
             <Menu className="w-4 h-4  text-white" />
         </button>
@@ -159,16 +173,16 @@ const Sidebar = () => {
             {/* Sidebar */}
             <div
                 className={`fixed lg:static bg-gradient-to-b from-gray-900 to-gray-800 
-                    text-white h-screen transition-all duration-300 ease-in-out 
-                    border-r border-gray-700/50 z-40
-                    ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-                    ${isCollapsed ? 'lg:w-20' : 'lg:w-64'} w-[280px]`}
+                        text-white h-screen transition-all duration-300 ease-in-out 
+                        border-r border-gray-700/50 z-40
+                        ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+                        ${isCollapsed ? 'lg:w-20' : 'lg:w-64'} w-[280px]`}
             >
                 {/* Mobile close button */}
                 <button
                     onClick={() => setIsMobileOpen(false)}
                     className="lg:hidden absolute right-4 top-4 p-2 rounded-lg 
-                        hover:bg-gray-700 transition-all duration-300"
+                            hover:bg-gray-700 transition-all duration-300"
                 >
                     <X className="w-6 h-6 text-gray-400" />
                 </button>
@@ -177,12 +191,12 @@ const Sidebar = () => {
                 <button
                     onClick={() => setIsCollapsed(prev => !prev)}
                     className="hidden lg:block absolute -right-3 top-6 p-1.5 rounded-full 
-                        bg-gray-800 hover:bg-gray-700 transition-all duration-300 ease-in-out 
-                        transform hover:scale-105 active:scale-95 shadow-lg border border-gray-700"
+                            bg-gray-800 hover:bg-gray-700 transition-all duration-300 ease-in-out 
+                            transform hover:scale-105 active:scale-95 shadow-lg border border-gray-700"
                 >
                     <ChevronLeft
                         className={`w-4 h-4 text-gray-400 transition-all duration-300 
-                            ease-in-out transform ${isCollapsed ? 'rotate-180' : ''}`}
+                                ease-in-out transform ${isCollapsed ? 'rotate-180' : ''}`}
                     />
                 </button>
 
@@ -207,16 +221,10 @@ const Sidebar = () => {
                 </nav>
 
                 <div className="p-4 border-t border-gray-700/50">
-                    <div className={`flex items-center transition-all duration-300 ease-in-out
-                        ${isCollapsed ? 'justify-center' : 'space-x-3'}`}>
-                        <ProfileAvatar name={userData?.payload?.name || "User"} />
-                        <div
-                            className={`flex flex-col transition-all duration-300 ease-in-out 
-                                overflow-hidden
-                                ${isCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'}`}
-                        >
-                            <span className="text-lg capitalize font-medium text-gray-200 
-                                whitespace-nowrap">
+                    <div className={`flex items-center transition-all duration-300 ease-in-out ${isCollapsed ? 'justify-center' : 'space-x-3'}`}>
+                        <ProfileAvatar name={userData?.payload?.name || "User"} profile={userData?.payload?.profile} />
+                        <div className={`flex flex-col transition-all duration-300 ease-in-out overflow-hidden ${isCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'}`}>
+                            <span className="text-lg capitalize font-medium text-gray-200 whitespace-nowrap">
                                 {userData?.payload?.name || "User"}
                             </span>
                         </div>

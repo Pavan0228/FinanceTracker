@@ -23,6 +23,8 @@ router.get("/:id", async (req, res) => {
                 email: userData.email,
                 name: userData.name,
                 password: userData.password,
+                profession:userData.profession,
+                profile:userData.profile.profilePicUrl
             });
         } else {
             res.status(404).send({ message: "User not found" });
