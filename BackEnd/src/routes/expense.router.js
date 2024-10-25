@@ -16,5 +16,10 @@ router.get("/:id/monthlyDebitCredit/:month/:year", getMonthlyDebitCredit);
 router.get("/:id/monthly/messages/:month/:year", getMonthlyMessages);
 router.get("/:id/messages/:year", getYearlyMessages);
 router.get('/allMonthSummary/:userId/:year', getAllMonthSummary);
+//test get code
+router.get('/test', (req, res) => {
+    res.send('test route')
+    });
+    
 
 export default router;
