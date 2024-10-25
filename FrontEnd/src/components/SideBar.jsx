@@ -5,7 +5,7 @@ import {
     LayoutDashboard,
     CreditCard,
     PieChart,
-    Wallet,
+    Download,
     HelpCircle,
     ChevronLeft,
     ChevronRight,
@@ -98,7 +98,7 @@ const Sidebar = () => {
         { icon: CreditCard, text: 'Daily', path: '/daily' },
         { icon: PieChart, text: 'Yearly', path: '/yearly' },
         { icon: PlusCircle, text: 'Input Finance', path: '/input' },
-        { icon: Wallet, text: 'Download Data', path: '/download' },
+        { icon: Download, text: 'Download Data', path: '/download' },
         { icon: HelpCircle, text: 'Help', path: '/help' },
     ];
 
