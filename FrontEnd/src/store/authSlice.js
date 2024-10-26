@@ -20,7 +20,7 @@ export const login = createAsyncThunk(
                 
                 idToken,
             });
-
+            console.log(`Logging in with URL: ${apiBaseURL}/api/auth/login`);
             const { accessToken, uid } = response.data;
 
             localStorage.setItem("accessToken", accessToken);
