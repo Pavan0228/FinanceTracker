@@ -72,7 +72,7 @@ export const getMonthlyDebitCredit = async (req, res) => {
         }
 
         const monthYear = `${monthNumber.toString().padStart(2, "0")}${year}`;
-
+        console.log("monthYear",monthYear)
         const messages = await getUserMonthlyMessagesById(userId, monthYear);
         const monthlyTotals = monthlyDebitCredit(messages, monthNumber);
 
@@ -91,7 +91,7 @@ export const getMonthlyDebitCredit = async (req, res) => {
 export const getMonthlyMessages = async (req, res) => {
     const { id, month, year } = req.params;
     const monthYear = `${month.toString().padStart(2, "0")}${year}`;
-
+    console.log("monthyear",monthYear)
     try {
         const monthlyMessages = await getUserMonthlyMessagesById(id, monthYear);
         res.status(200).json({

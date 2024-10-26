@@ -69,10 +69,10 @@ const Yearly = () => {
         const [day, month, year] = datePart.split('/');
         const date = new Date(`${year}-${month}-${day}T${timePart}`);
 
-        if (isNaN(date.getTime())) {
-            console.error(`Invalid date: ${dateString}`);
-            return "Invalid Date";
-        }
+        // if (isNaN(date.getTime())) {
+        //     console.error(`Invalid date: ${dateString}`);
+        //     return "Invalid Date";
+        // }
 
         return `${day}/${month}/${year}`;
     };

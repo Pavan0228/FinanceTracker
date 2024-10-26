@@ -185,7 +185,7 @@ export async function getUserMonthlyMessagesById(userId, monthYear) {
         console.log(year,month)
         // Fetch input entries for the specified user
         const inputSnapshot = await db
-            .ref(`user/${userId}/input/2024/10`)
+            .ref(`user/${userId}/input/${year}/${month}`)
             .once("value");
         const inputs = inputSnapshot.val() || {};
 
