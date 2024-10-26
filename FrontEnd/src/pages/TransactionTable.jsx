@@ -37,6 +37,7 @@ const TransactionTable = () => {
                 const dailyResponse = await dispatch(
                     fetchDailyTransactions({ userId, currentMonth, currentYear })
                 ).unwrap();
+                
                 setDailyTransactions(dailyResponse.monthlyMessages);
             } catch (error) {
                 setError('Failed to fetch daily transactions. Please try again later.');
