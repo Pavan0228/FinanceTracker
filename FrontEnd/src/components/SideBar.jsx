@@ -1,5 +1,5 @@
 import React, { useEffect, useState, memo } from "react";
-import {Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import {
     LayoutDashboard,
@@ -17,7 +17,6 @@ import {
 import image from "../assets/CroppedImage.png";
 import { getUser } from "../store/authSlice";
 
-// Profile Avatar Component
 // Profile Avatar Component
 const ProfileAvatar = memo(({ name, profile }) => {
     const initials = name
@@ -204,7 +203,7 @@ const Sidebar = () => {
                     <Logo isCollapsed={isCollapsed} />
                 </div>
 
-                <nav className="flex-grow pt-4 overflow-hidden">
+                <nav className="flex-grow pt-4 overflow-hidden ">
                     <ul className="space-y-2 px-3">
                         {navigationItems.map((item) => (
                             <SidebarItem
@@ -219,8 +218,15 @@ const Sidebar = () => {
                         ))}
                     </ul>
                 </nav>
-                    <div className="p-4 border-t border-gray-700/50" >
-                <Link to="/user">
+
+                {/* Horizontal line separator */}
+                <div className="px-3">
+                    <div className="h-px bg-gray-700/50 w-full my-2"></div>
+                </div>
+
+                <div className="p-4 bottom-1 absolute" >
+                    
+                    <Link to="/user">
                         <div className={`flex items-center transition-all duration-300 ease-in-out ${isCollapsed ? 'justify-center' : 'space-x-3'}`}>
                             <ProfileAvatar name={userData?.payload?.name || "User"} profile={userData?.payload?.profile} />
                             <div className={`flex flex-col transition-all duration-300 ease-in-out overflow-hidden ${isCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'}`}>
@@ -229,8 +235,8 @@ const Sidebar = () => {
                                 </span>
                             </div>
                         </div>
-                </Link>
-                    </div>
+                    </Link>
+                </div>
             </div>
         </>
     );
