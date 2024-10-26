@@ -2,7 +2,6 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
 const API_URL = import.meta.env.VITE_API_URL;
-console.log(API_URL,"url is ")
 
 export const fetchMonthlySummary = createAsyncThunk(
     "expenses/fetchMonthlySummary",

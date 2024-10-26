@@ -3,6 +3,9 @@ import AWS from "aws-sdk";
 import multer from "multer";
 import express from "express";
 import { updateProfilePicture } from "../services/profileService.js";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const router = express.Router();
 
