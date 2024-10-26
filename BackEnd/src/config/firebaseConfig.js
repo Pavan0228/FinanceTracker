@@ -3,7 +3,7 @@ import { readFileSync } from "fs";
 import path from "path";
 
 // Path to the service account key
-const serviceAccountPath = path.resolve("src/config/firebaseConfig.json");
+const serviceAccountPath = path.resolve("config/firebaseConfig.json");
 const serviceAccount = JSON.parse(readFileSync(serviceAccountPath, "utf8"));
 
 // Initialize Firebase app if it hasn't been initialized
