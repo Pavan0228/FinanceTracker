@@ -8,14 +8,15 @@ import {
     getYearlyMessages,
 } from "../store/expensesSlice";
 import { useDispatch } from "react-redux";
-import { ToastContainer, toast } from 'react-toastify'; 
-import 'react-toastify/dist/ReactToastify.css'; // Import CSS for toast notifications
-
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css"; // Import CSS for toast notifications
 
 const DownloadFiles = () => {
     const [jsonData, setJsonData] = useState([]);
     const [totals, setTotals] = useState({ Credited: 0, Debited: 0 });
-    const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+    const [selectedMonth, setSelectedMonth] = useState(
+        new Date().getMonth() + 1
+    );
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
     const [isLoading, setIsLoading] = useState(false);
 
@@ -27,32 +28,68 @@ const DownloadFiles = () => {
     }, [userId, dispatch, selectedMonth, selectedYear]);
 
     const sortMessagesByDate = (messages) => {
+        if (!Array.isArray(messages) || messages.length === 0) return [];
+
         return [...messages].sort((a, b) => {
-            const [dayA, monthA, yearRestA] = a.date.split('/');
-            const [yearA, timeA] = yearRestA.split(' ');
-            const [hoursA, minutesA, secondsA] = timeA.split(':');
-            
-            const [dayB, monthB, yearRestB] = b.date.split('/');
-            const [yearB, timeB] = yearRestB.split(' ');
-            const [hoursB, minutesB, secondsB] = timeB.split(':');
-            
-            const dateA = new Date(yearA, monthA - 1, dayA, hoursA, minutesA, secondsA);
-            const dateB = new Date(yearB, monthB - 1, dayB, hoursB, minutesB, secondsB);
-            
-            return dateB - dateA;
+            if (!a?.date || !b?.date) return 0;
+
+            try {
+                const [dayA, monthA, yearRestA] = a.date.split("/");
+                const [yearA, timeA] = yearRestA?.split(" ") || [];
+                const [hoursA, minutesA, secondsA] = timeA?.split(":") || [];
+
+                const [dayB, monthB, yearRestB] = b.date.split("/");
+                const [yearB, timeB] = yearRestB?.split(" ") || [];
+                const [hoursB, minutesB, secondsB] = timeB?.split(":") || [];
+
+                const dateA = new Date(
+                    yearA,
+                    monthA - 1,
+                    dayA,
+                    hoursA || 0,
+                    minutesA || 0,
+                    secondsA || 0
+                );
+                const dateB = new Date(
+                    yearB,
+                    monthB - 1,
+                    dayB,
+                    hoursB || 0,
+                    minutesB || 0,
+                    secondsB || 0
+                );
+
+                if (isNaN(dateA.getTime()) || isNaN(dateB.getTime())) return 0;
+
+                return dateB - dateA;
+            } catch (error) {
+                console.warn("Error sorting dates:", error);
+                return 0;
+            }
         });
     };
 
     const fetchDailyData = async () => {
-        const dailyResponse = await dispatch(
-            fetchDailyTransactions({
-                userId,
-                currentMonth: selectedMonth,
-                currentYear: selectedYear,
-            })
-        ).unwrap();
-        return sortMessagesByDate(dailyResponse.monthlyMessages);
-    }
+        try {
+            const dailyResponse = await dispatch(
+                fetchDailyTransactions({
+                    userId,
+                    currentMonth: selectedMonth,
+                    currentYear: selectedYear,
+                })
+            ).unwrap();
+
+            if (!dailyResponse?.monthlyMessages) {
+                throw new Error("No monthly messages found");
+            }
+
+            return sortMessagesByDate(dailyResponse.monthlyMessages);
+        } catch (error) {
+            console.error("Error fetching daily data:", error);
+            toast.error("Failed to fetch daily transactions");
+            return [];
+        }
+    };
 
     const fetchYearlyData = async () => {
         try {
@@ -62,16 +99,21 @@ const DownloadFiles = () => {
                     currentYear: selectedYear,
                 })
             ).unwrap();
-            
+
+            if (!yearlyResponse || !Array.isArray(yearlyResponse)) {
+                throw new Error("Invalid yearly messages response");
+            }
+
             return sortMessagesByDate(yearlyResponse);
         } catch (error) {
-            if (error === 'No messages found for this user' || 
-                error.message === 'No messages found for this user') {
-                toast.info('No messages available to download for selected year');
+            if (error.message === "No messages found for this user") {
+                toast.info(
+                    "No messages available to download for selected year"
+                );
             } else {
-                toast.error('Failed to fetch messages');
+                toast.error("Failed to fetch yearly messages");
             }
-            return null;
+            return [];
         }
     };
 
@@ -82,11 +124,17 @@ const DownloadFiles = () => {
 
             let CreditedTotal = 0;
             let DebitedTotal = 0;
+
             messages.forEach((message) => {
+                if (!message?.amount) return;
+
+                const amount = parseFloat(message.amount.replace(/,/g, ""));
+                if (isNaN(amount)) return;
+
                 if (message.type === "Credited") {
-                    CreditedTotal += parseFloat(message.amount.replace(/,/g, '')); // Remove commas before parsing
+                    CreditedTotal += amount;
                 } else if (message.type === "Debited") {
-                    DebitedTotal += parseFloat(message.amount.replace(/,/g, '')); // Remove commas before parsing
+                    DebitedTotal += amount;
                 }
             });
 
@@ -94,27 +142,35 @@ const DownloadFiles = () => {
             setTotals({ Credited: CreditedTotal, Debited: DebitedTotal });
         } catch (error) {
             console.error("Error fetching monthly messages:", error);
+            toast.error("Failed to fetch monthly messages");
+            setJsonData([]);
+            setTotals({ Credited: 0, Debited: 0 });
         } finally {
             setIsLoading(false);
         }
     };
 
     const formatDate = (dateString) => {
-        return dateString.split(" ")[0];
+        if (!dateString) return "";
+        const parts = dateString.split(" ");
+        return parts[0] || "";
     };
 
     const downloadExcel = async (isYearly = false) => {
         setIsLoading(true);
         try {
             const data = isYearly ? await fetchYearlyData() : jsonData;
+
+            if (!data || data.length === 0) {
+                toast.info(
+                    `No messages available to download for selected ${isYearly ? "year" : "month"}`
+                );
+                return;
+            }
+
             const filename = isYearly
                 ? `yearly_transactions_${selectedYear}.xlsx`
                 : `transactions_${selectedMonth}_${selectedYear}.xlsx`;
-
-                if(data.length === 0) {
-                    toast.info("No messages available to download for selected month");
-                    return;
-                }
 
             const worksheet = XLSX.utils.json_to_sheet(data);
             const workbook = XLSX.utils.book_new();
@@ -122,20 +178,23 @@ const DownloadFiles = () => {
             XLSX.writeFile(workbook, filename);
         } catch (error) {
             console.error("Error downloading Excel:", error);
+            toast.error("Failed to download Excel file");
         } finally {
             setIsLoading(false);
         }
     };
 
     const generatePDF = (data, title) => {
+        if (!data || data.length === 0) return null;
+
         const doc = new jsPDF();
         doc.text(title, 20, 10);
         const headers = [["Amount", "Date", "Sender", "Type"]];
         const pdfData = data.map((item) => [
-            item.amount,
+            item.amount || "",
             formatDate(item.date),
-            item.sender,
-            item.type,
+            item.sender || "",
+            item.type || "",
         ]);
         doc.autoTable({ head: headers, body: pdfData });
         return doc;
@@ -145,22 +204,29 @@ const DownloadFiles = () => {
         setIsLoading(true);
         try {
             const data = isYearly ? await fetchYearlyData() : jsonData;
+
+            if (!data || data.length === 0) {
+                toast.info(
+                    `No messages available to download for selected ${isYearly ? "year" : "month"}`
+                );
+                return;
+            }
+
             const filename = isYearly
                 ? `yearly_transactions_${selectedYear}.pdf`
                 : `transactions_${selectedMonth}_${selectedYear}.pdf`;
             const title = isYearly
                 ? `Yearly Transactions for ${selectedYear}`
-                : `Transactions for ${new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'long' })} ${selectedYear}`;
-
-                if(data.length === 0) {
-                    toast.info("No messages available to download for selected month");
-                    return;
-                }
+                : `Transactions for ${new Date(selectedYear, selectedMonth - 1).toLocaleString("default", { month: "long" })} ${selectedYear}`;
 
             const doc = generatePDF(data, title);
+            if (!doc) {
+                throw new Error("Failed to generate PDF");
+            }
             doc.save(filename);
         } catch (error) {
             console.error("Error downloading PDF:", error);
+            toast.error("Failed to download PDF");
         } finally {
             setIsLoading(false);
         }
@@ -170,19 +236,26 @@ const DownloadFiles = () => {
         setIsLoading(true);
         try {
             const data = isYearly ? await fetchYearlyData() : jsonData;
+
+            if (!data || data.length === 0) {
+                toast.info(
+                    `No messages available to view for selected ${isYearly ? "year" : "month"}`
+                );
+                return;
+            }
+
             const title = isYearly
                 ? `Yearly Transactions for ${selectedYear}`
-                : `Transactions for ${new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'long' })} ${selectedYear}`;
-
-                if(data.length === 0) {
-                    toast.info("No messages available to download for selected month");
-                    return;
-                }
+                : `Transactions for ${new Date(selectedYear, selectedMonth - 1).toLocaleString("default", { month: "long" })} ${selectedYear}`;
 
             const doc = generatePDF(data, title);
+            if (!doc) {
+                throw new Error("Failed to generate PDF");
+            }
             window.open(doc.output("bloburl"), "_blank");
         } catch (error) {
             console.error("Error viewing PDF:", error);
+            toast.error("Failed to view PDF");
         } finally {
             setIsLoading(false);
         }
@@ -209,11 +282,15 @@ const DownloadFiles = () => {
         <div className="min-h-screen bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8">
             {isLoading && <LoadingOverlay />}
             <div className="max-w-6xl mx-auto">
-                <h1 className="text-4xl font-bold mb-8 text-center">Financial Reports</h1>
+                <h1 className="text-4xl font-bold mb-8 text-center">
+                    Financial Reports
+                </h1>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="bg-gray-800 rounded-lg shadow-lg p-6">
-                        <h2 className="text-2xl font-semibold mb-4">Monthly Reports</h2>
+                        <h2 className="text-2xl font-semibold mb-4">
+                            Monthly Reports
+                        </h2>
                         <div className="flex space-x-4 mb-4">
                             <select
                                 value={selectedMonth}
@@ -222,7 +299,10 @@ const DownloadFiles = () => {
                             >
                                 {[...Array(12)].map((_, i) => (
                                     <option key={i} value={i + 1}>
-                                        {new Date(0, i).toLocaleString('default', { month: 'long' })}
+                                        {new Date(0, i).toLocaleString(
+                                            "default",
+                                            { month: "long" }
+                                        )}
                                     </option>
                                 ))}
                             </select>
@@ -232,7 +312,10 @@ const DownloadFiles = () => {
                                 className="bg-gray-700 text-white rounded-md px-3 py-2"
                             >
                                 {[...Array(5)].map((_, i) => (
-                                    <option key={i} value={new Date().getFullYear() - i}>
+                                    <option
+                                        key={i}
+                                        value={new Date().getFullYear() - i}
+                                    >
                                         {new Date().getFullYear() - i}
                                     </option>
                                 ))}
@@ -257,7 +340,9 @@ const DownloadFiles = () => {
                     </div>
 
                     <div className="bg-gray-800 rounded-lg shadow-lg p-6">
-                        <h2 className="text-2xl font-semibold mb-4">Yearly Report</h2>
+                        <h2 className="text-2xl font-semibold mb-4">
+                            Yearly Report
+                        </h2>
                         <div className="flex space-x-4 mb-4">
                             <select
                                 value={selectedYear}
@@ -265,7 +350,10 @@ const DownloadFiles = () => {
                                 className="bg-gray-700 text-white rounded-md px-3 py-2"
                             >
                                 {[...Array(5)].map((_, i) => (
-                                    <option key={i} value={new Date().getFullYear() - i}>
+                                    <option
+                                        key={i}
+                                        value={new Date().getFullYear() - i}
+                                    >
                                         {new Date().getFullYear() - i}
                                     </option>
                                 ))}
@@ -291,7 +379,9 @@ const DownloadFiles = () => {
                 </div>
 
                 <div className="mt-8 bg-gray-800 rounded-lg shadow-lg p-6">
-                    <h2 className="text-2xl font-semibold mb-4">View Reports</h2>
+                    <h2 className="text-2xl font-semibold mb-4">
+                        View Reports
+                    </h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <button
                             onClick={() => viewPDF(false)}
@@ -314,12 +404,20 @@ const DownloadFiles = () => {
                     <h2 className="text-2xl font-semibold mb-4">Summary</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="bg-green-600 rounded-lg p-4">
-                            <h3 className="text-lg font-medium mb-2">Total Credited</h3>
-                            <p className="text-2xl font-bold">₹{totals.Credited.toFixed(2)}</p>
+                            <h3 className="text-lg font-medium mb-2">
+                                Total Credited
+                            </h3>
+                            <p className="text-2xl font-bold">
+                                ₹{totals.Credited.toFixed(2)}
+                            </p>
                         </div>
                         <div className="bg-red-600 rounded-lg p-4">
-                            <h3 className="text-lg font-medium mb-2">Total Debited</h3>
-                            <p className="text-2xl font-bold">₹{totals.Debited.toFixed(2)}</p>
+                            <h3 className="text-lg font-medium mb-2">
+                                Total Debited
+                            </h3>
+                            <p className="text-2xl font-bold">
+                                ₹{totals.Debited.toFixed(2)}
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -330,9 +428,6 @@ const DownloadFiles = () => {
 };
 
 export default DownloadFiles;
-
-
-
 
 // const DownloadFiles = () => {
 //     const [jsonData, setJsonData] = React.useState([]);
