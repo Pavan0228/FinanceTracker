@@ -5,6 +5,10 @@ import axios from 'axios';
 import { fetchDailyTransactions, fetchMonthlyDebitCredit, fetchMonthlySummary, fetchTotalAmounts } from '../store/expensesSlice';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import * as XLSX from "xlsx";
+import "jspdf-autotable";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -304,6 +308,33 @@ const FinanceDashboard = () => {
     }, [dailyDebitAndCredit])
 
 
+    
+    const downloadExcel = async () => {
+        try {
+            const data = dailyDebitAndCredit;
+            
+            if (data.length === 0) {
+                toast.info("No transactions to download");
+                return;
+            }
+
+            const [year, month] = selectedDate.split('-');
+            const currentYear = parseInt(year);
+            const currentMonth = parseInt(month);
+
+            const filename = `transactions_${currentMonth}_${currentYear}.xlsx`
+
+            const worksheet = XLSX.utils.json_to_sheet(data);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Transactions");
+            XLSX.writeFile(workbook, filename);
+        } catch (error) {
+            console.error("Error downloading Excel:", error);
+            toast.error("Failed to download Excel file");
+        }
+    };
+
+
     return (
         <div className="bg-gray-900 text-white min-h-screen p-4 lg:p-6">
             {/* Header Section */}
@@ -348,6 +379,7 @@ const FinanceDashboard = () => {
                             className="cursor-pointer hover:text-green-400"
                             onMouseEnter={() => setShowText(true)}
                             onMouseLeave={() => setShowText(false)}
+                            onClick={downloadExcel}
                         />
                         {showText && (
                             <div className="absolute right-0 mt-2 py-1 px-2 bg-gray-800 text-xs rounded shadow-lg z-10">
@@ -471,6 +503,7 @@ const FinanceDashboard = () => {
                     </div>
                 </div>
             </div>
+            <ToastContainer />
         </div>
     );
     }
