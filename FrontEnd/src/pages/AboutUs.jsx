@@ -53,8 +53,8 @@ const AboutUsPage = () => {
         },
         {
             name: "Pavan Rasal",
-            email: "priya.singh@university.edu",
-            linkedin: "https://linkedin.com/in/priyasingh",
+            email: "pavanrasal4@gmail.com",
+            linkedin: "https://www.linkedin.com/in/pavan-rasal-320123326/",
             github: "https://github.com/Pavan-0228"
         },
         {
