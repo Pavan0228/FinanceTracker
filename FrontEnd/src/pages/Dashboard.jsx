@@ -308,11 +308,11 @@ const FinanceDashboard = () => {
     }, [dailyDebitAndCredit])
 
 
-    
+
     const downloadExcel = async () => {
         try {
             const data = dailyDebitAndCredit;
-            
+
             if (data.length === 0) {
                 toast.info("No transactions to download");
                 return;
@@ -343,7 +343,7 @@ const FinanceDashboard = () => {
                 <div className="flex items-center">
                     <h1 className="text-2xl lg:text-3xl font-bold">PennyTracker</h1>
                 </div>
-    
+
                 {/* Date and Limit Controls */}
                 <div className="flex flex-row sm:flex-row items-start sm:items-center gap-3">
                     <select
@@ -360,13 +360,13 @@ const FinanceDashboard = () => {
                         Set Monthly Limit
                     </button>
                 </div>
-    
+
                 {/* Utils */}
                 <div className="flex  gap-4">
                     <div className="flex items-center gap-2">
                         <Clock10 className="w-5 h-5" />
                         <span className="text-sm text-gray-300">
-                            {new Date().toLocaleDateString('en-US', { 
+                            {new Date().toLocaleDateString('en-US', {
                                 day: 'numeric',
                                 month: 'short',
                                 year: 'numeric'
@@ -388,8 +388,8 @@ const FinanceDashboard = () => {
                         )}
                     </div>
                     <div className="relative">
-                        <PowerOffIcon 
-                            className="hover:text-red-600 cursor-pointer" 
+                        <PowerOffIcon
+                            className="hover:text-red-600 cursor-pointer"
                             size={20}
                             onClick={handleLogout}
                             onMouseEnter={() => setShowLogout(true)}
@@ -398,33 +398,34 @@ const FinanceDashboard = () => {
                     </div>
                 </div>
             </div>
-    
+
             {showLimitModal && <LimitModal />}
-    
+
             {/* Main Content Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Summary Cards Row */}
                 <div className="bg-orange-500 rounded-xl p-6 lg:col-span-1 flex justify-evenly">
-                    <div className="grid grid-cols-2   gap-2 gap-x-10  lg:gap-5">
+                    <div className="grid grid-cols-2 gap-2 gap-x-10 lg:gap-5">
                         <div>
-                            <h1 className="xl:text-lg md:text-lg text-lg  font-semibold ">Total Spendings</h1>
-                            <p className="xl:text-3xl md:text-3xl lg:text-xl text-xl font-bold">₹{totalAmounts.totalDebit.toLocaleString()}</p>
+                            <h1 className="xl:text-lg md:text-lg text-lg font-semibold">Total Spendings</h1>
+                            <p className="xl:text-3xl md:text-3xl lg:text-xl text-xl font-bold">₹{parseFloat(totalAmounts.totalDebit)}</p>
                         </div>
                         <div>
-                            <h1 className="xl:text-lg md:text-lg text-lg  font-semibold ">Total Earnings</h1>
-                            <p className="xl:text-3xl md:text-3xl  lg:text-xl text-xl font-bold">₹{totalAmounts.totalCredit.toLocaleString()}</p>
+                            <h1 className="xl:text-lg md:text-lg text-lg font-semibold">Total Earnings</h1>
+                            <p className="xl:text-3xl md:text-3xl lg:text-xl text-xl font-bold">₹{parseFloat(totalAmounts.totalCredit)}</p>
                         </div>
                         <div>
-                            <h2 className="xl:text-lg md:text-lg text-lg  font-semibold  ">Monthly Earning</h2>
-                            <p className="xl:text-3xl md:text-3xl  lg:text-xl text-xl font-bold">₹{CreditedTotal}</p>
+                            <h2 className="xl:text-lg md:text-lg text-lg font-semibold">Monthly Earning</h2>
+                            <p className="xl:text-3xl md:text-3xl lg:text-xl text-xl font-bold">₹{CreditedTotal}</p>
                         </div>
                         <div>
-                            <h2 className="xl:text-lg md:text-lg text-lg  font-semibold ">Monthly Expense</h2>
+                            <h2 className="xl:text-lg md:text-lg text-lg font-semibold">Monthly Expense</h2>
                             <p className="xl:text-3xl md:text-3xl lg:text-xl text-xl font-bold">₹{DebitedTotal}</p>
                         </div>
                     </div>
                 </div>
-    
+
+
                 {/* Daily Transaction Charts */}
                 <div className="bg-gray-800 rounded-xl p-6 cursor-pointer hover:bg-gray-750 transition-colors" onClick={handleClick}>
                     <h3 className="text-lg font-semibold mb-4">Daily Debit</h3>
@@ -439,7 +440,7 @@ const FinanceDashboard = () => {
                         </ResponsiveContainer>
                     </div>
                 </div>
-    
+
                 <div className="bg-gray-800 rounded-xl p-6 cursor-pointer hover:bg-gray-750 transition-colors" onClick={handleClick}>
                     <h3 className="text-lg font-semibold mb-4">Daily Credit</h3>
                     <div className="h-32">
@@ -453,7 +454,7 @@ const FinanceDashboard = () => {
                         </ResponsiveContainer>
                     </div>
                 </div>
-    
+
                 {/* Yearly Overview Chart */}
                 <div className="bg-gray-800 rounded-xl p-6 lg:col-span-2">
                     <h3 className="text-lg font-semibold mb-4">Annual Income & Expenses</h3>
@@ -470,7 +471,7 @@ const FinanceDashboard = () => {
                         </ResponsiveContainer>
                     </div>
                 </div>
-    
+
                 {/* Monthly Spending Pie Chart */}
                 <div className="bg-gray-800 rounded-xl p-6">
                     <h3 className="text-lg font-semibold mb-4">Monthly Spending</h3>
@@ -506,6 +507,6 @@ const FinanceDashboard = () => {
             <ToastContainer />
         </div>
     );
-    }
+}
 
 export default FinanceDashboard;
