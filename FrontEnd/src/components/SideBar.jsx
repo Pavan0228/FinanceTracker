@@ -12,19 +12,20 @@ import {
     X,
     Menu,
     PlusCircle,
-} from 'lucide-react';
+} from "lucide-react";
 
 import image from "../assets/CroppedImage.png";
 import { getUser } from "../store/authSlice";
 
 // Profile Avatar Component
 const ProfileAvatar = memo(({ name, profile }) => {
-    const initials = name
-        ?.split(' ')
-        .map(word => word[0])
-        .join('')
-        .toUpperCase()
-        .slice(0, 2) || 'U';
+    const initials =
+        name
+            ?.split(" ")
+            .map((word) => word[0])
+            .join("")
+            .toUpperCase()
+            .slice(0, 2) || "U";
 
     return (
         <div className="relative">
@@ -35,8 +36,10 @@ const ProfileAvatar = memo(({ name, profile }) => {
                         alt={name}
                         className="w-full h-full object-cover"
                         onError={(e) => {
-                            e.target.style.display = 'none';
-                            e.target.parentElement.querySelector('.initials-fallback').style.display = 'flex';
+                            e.target.style.display = "none";
+                            e.target.parentElement.querySelector(
+                                ".initials-fallback"
+                            ).style.display = "flex";
                         }}
                     />
                 ) : (
@@ -49,17 +52,19 @@ const ProfileAvatar = memo(({ name, profile }) => {
     );
 });
 
-
 // Logo Component
-const Logo = memo(({ isCollapsed }) => (
-    <div className={`flex items-center transition-all duration-300 ease-in-out
-            ${isCollapsed ? 'w-full justify-center' : 'gap-3'}`}>
+const Logo = memo(({ isCollapsed, navigate }) => (
+    <div
+        onClick={() => navigate("/dashboard")}
+        className={`flex items-center transition-all duration-300 ease-in-out
+            ${isCollapsed ? "w-full justify-center" : "gap-3"} hover:cursor-pointer `}
+    >
         <div className="min-w-[32px] h-8 flex items-center justify-center">
             <img
                 src={image}
                 alt="Logo"
                 className={`transition-all duration-300 ease-in-out
-                        ${isCollapsed ? 'w-6 h-6' : 'w-8 h-8'} 
+                        ${isCollapsed ? "w-6 h-6" : "w-8 h-8"} 
                         object-contain hover:scale-105`}
             />
         </div>
@@ -67,36 +72,40 @@ const Logo = memo(({ isCollapsed }) => (
             className={`text-xl font-bold text-white
                     bg-clip-text transition-all duration-300 ease-in-out 
                     overflow-hidden whitespace-nowrap
-                    ${isCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'}`}
+                    ${isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"}`}
         >
-            PennyWise
+            pennyTracker
         </h1>
     </div>
 ));
 
 // Memoized SidebarItem component
-const SidebarItem = memo(({ icon: Icon, text, path, isActive, onClick, isCollapsed }) => (
-    <li
-        className={`flex items-center p-3 rounded-lg cursor-pointer
+const SidebarItem = memo(
+    ({ icon: Icon, text, path, isActive, onClick, isCollapsed }) => (
+        <li
+            className={`flex items-center p-3 rounded-lg cursor-pointer
                 transition-all duration-300 ease-in-out transform
-                ${isActive
-                ? "bg-gray-700 text-white shadow-lg translate-x-2"
-                : "text-gray-400 hover:bg-gray-700/50 hover:text-white hover:translate-x-2"
-            }
-                ${isCollapsed ? 'justify-center' : ''}`}
-        onClick={onClick}
-    >
-        <Icon className={`w-6 h-6 transition-all duration-300 ease-in-out
-                ${!isCollapsed ? 'mr-3' : 'transform hover:scale-110'}`}
-        />
-        <span
-            className={`text-sm font-medium whitespace-nowrap overflow-hidden transition-all duration-300 ease-in-out
-                    ${isCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'}`}
+                ${
+                    isActive
+                        ? "bg-gray-700 text-white shadow-lg translate-x-2"
+                        : "text-gray-400 hover:bg-gray-700/50 hover:text-white hover:translate-x-2"
+                }
+                ${isCollapsed ? "justify-center" : ""}`}
+            onClick={onClick}
         >
-            {text}
-        </span>
-    </li>
-));
+            <Icon
+                className={`w-6 h-6 transition-all duration-300 ease-in-out
+                ${!isCollapsed ? "mr-3" : "transform hover:scale-110"}`}
+            />
+            <span
+                className={`text-sm font-medium whitespace-nowrap overflow-hidden transition-all duration-300 ease-in-out
+                    ${isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"}`}
+            >
+                {text}
+            </span>
+        </li>
+    )
+);
 
 const Sidebar = () => {
     const [isCollapsed, setIsCollapsed] = useState(false);
@@ -107,19 +116,19 @@ const Sidebar = () => {
     const dispatch = useDispatch();
 
     const navigationItems = [
-        { icon: LayoutDashboard, text: 'Dashboard', path: '/dashboard' },
-        { icon: CreditCard, text: 'Daily', path: '/daily' },
-        { icon: PieChart, text: 'Yearly', path: '/yearly' },
-        { icon: PlusCircle, text: 'Input Finance', path: '/input' },
-        { icon: Download, text: 'Download Data', path: '/download' },
-        { icon: HelpCircle, text: 'Help', path: '/help' },
+        { icon: LayoutDashboard, text: "Dashboard", path: "/dashboard" },
+        { icon: CreditCard, text: "Daily", path: "/daily" },
+        { icon: PieChart, text: "Yearly", path: "/yearly" },
+        { icon: PlusCircle, text: "Input Finance", path: "/input" },
+        { icon: Download, text: "Download Data", path: "/download" },
+        { icon: HelpCircle, text: "Help", path: "/help" },
     ];
 
     useEffect(() => {
         const userId = localStorage.getItem("uid");
         if (userId) {
             dispatch(getUser({ userId }))
-                .then(user => setUserData(user))
+                .then((user) => setUserData(user))
                 .catch(console.error);
         }
     }, []);
@@ -137,8 +146,8 @@ const Sidebar = () => {
             }
         };
 
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
     }, []);
 
     const handleNavigate = (path) => {
@@ -174,8 +183,8 @@ const Sidebar = () => {
                 className={`fixed lg:static bg-gradient-to-b from-gray-900 to-gray-800 
                         text-white h-screen transition-all duration-300 ease-in-out 
                         border-r border-gray-700/50 z-40
-                        ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-                        ${isCollapsed ? 'lg:w-20' : 'lg:w-64'} w-[280px]`}
+                        ${isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+                        ${isCollapsed ? "lg:w-20" : "lg:w-64"} w-[280px]`}
             >
                 {/* Mobile close button */}
                 <button
@@ -188,19 +197,19 @@ const Sidebar = () => {
 
                 {/* Desktop collapse button */}
                 <button
-                    onClick={() => setIsCollapsed(prev => !prev)}
+                    onClick={() => setIsCollapsed((prev) => !prev)}
                     className="hidden lg:block absolute -right-3 top-6 p-1.5 rounded-full 
                             bg-gray-800 hover:bg-gray-700 transition-all duration-300 ease-in-out 
                             transform hover:scale-105 active:scale-95 shadow-lg border border-gray-700"
                 >
                     <ChevronLeft
                         className={`w-4 h-4 text-gray-400 transition-all duration-300 
-                                ease-in-out transform ${isCollapsed ? 'rotate-180' : ''}`}
+                                ease-in-out transform ${isCollapsed ? "rotate-180" : ""}`}
                     />
                 </button>
 
                 <div className="flex items-center p-4 border-b border-gray-700/50">
-                    <Logo isCollapsed={isCollapsed} />
+                    <Logo isCollapsed={isCollapsed} navigate={navigate} />
                 </div>
 
                 <nav className="flex-grow pt-4 overflow-hidden ">
@@ -224,12 +233,18 @@ const Sidebar = () => {
                     <div className="h-px bg-gray-700/50 w-full my-2"></div>
                 </div>
 
-                <div className="p-4 bottom-1 absolute" >
-                    
+                <div className="p-4 bottom-1 absolute">
                     <Link to="/user">
-                        <div className={`flex items-center transition-all duration-300 ease-in-out ${isCollapsed ? 'justify-center' : 'space-x-3'}`}>
-                            <ProfileAvatar name={userData?.payload?.name || "User"} profile={userData?.payload?.profile} />
-                            <div className={`flex flex-col transition-all duration-300 ease-in-out overflow-hidden ${isCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'}`}>
+                        <div
+                            className={`flex items-center transition-all duration-300 ease-in-out ${isCollapsed ? "justify-center" : "space-x-3"}`}
+                        >
+                            <ProfileAvatar
+                                name={userData?.payload?.name || "User"}
+                                profile={userData?.payload?.profile}
+                            />
+                            <div
+                                className={`flex flex-col transition-all duration-300 ease-in-out overflow-hidden ${isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"}`}
+                            >
                                 <span className="text-lg capitalize font-medium text-gray-200 whitespace-nowrap">
                                     {userData?.payload?.name || "User"}
                                 </span>
