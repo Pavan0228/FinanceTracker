@@ -173,7 +173,6 @@ export const monthlyDebitCredit = (messages, monthNumber) => {
 //!working with userInput
 export async function getUserMonthlyMessagesById(userId, monthYear) {
     try {
-        console.log(monthYear)
         // Fetch messages from the specified user
         const messagesSnapshot = await db
             .ref(`user/${userId}/messages/Month-Year/${monthYear}`)
@@ -182,7 +181,6 @@ export async function getUserMonthlyMessagesById(userId, monthYear) {
         //split last 4 digits as year from monthYear
         const year = monthYear.slice(2, 6);
         const month = monthYear.slice(0, 2);
-        console.log(year,month)
         // Fetch input entries for the specified user
         const inputSnapshot = await db
             .ref(`user/${userId}/input/${year}/${month}`)
@@ -232,7 +230,6 @@ export async function getUserMonthlyMessagesById(userId, monthYear) {
 // Function to get user yearly messages by ID
 export async function getUserYearlyMessagesById(userId, year) {
     try {
-        console.log("Fetching data for user:", userId, "and year:", year);
 
         // Fetch the 'Month-Year' data for the user
         const messagesSnapshot = await db
@@ -241,7 +238,6 @@ export async function getUserYearlyMessagesById(userId, year) {
         const userData = messagesSnapshot.val();
 
         if (!userData) {
-            console.log("No user data found for ID:", userId);
             return [];
         }
 

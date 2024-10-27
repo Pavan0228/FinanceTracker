@@ -7,18 +7,21 @@ import { Upload, User, Camera } from 'lucide-react';
 function UserPage() {
     const API_URL = import.meta.env.VITE_API_URL;
     const dispatch = useDispatch();
-    const { user } = useSelector((state) => state.auth);
     const [selectedFile, setSelectedFile] = useState(null);
     const [imageUrl, setImageUrl] = useState('');
     const [isUploading, setIsUploading] = useState(false);
     const [previewUrl, setPreviewUrl] = useState(null);
+    const [userData, setUserData] = useState(null);
     const userId = localStorage.getItem("uid"); // Fetch userId from localStorage
 
     useEffect(() => {
         if (userId) {
-            dispatch(getUser({ userId }));
+            dispatch(getUser({ userId }))
+                .then(user => setUserData(user))
+                .catch(console.error);
         }
     }, [dispatch, userId]);
+
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
@@ -78,15 +81,15 @@ function UserPage() {
                         {/* Profile Image Section */}
                         <div className="w-full md:w-1/3 flex flex-col items-center">
                             <div className="relative group">
-                                {(imageUrl || previewUrl || user?.profile) ? (
+                                {(imageUrl || previewUrl || userData?.payload?.profile) ? (
                                     <img
-                                        src={previewUrl || imageUrl || user?.profile}
+                                        src={previewUrl || imageUrl || userData?.payload?.profile}
                                         alt="Profile"
                                         className="w-48 h-48 rounded-full object-cover border-4 border-orange-400"
                                     />
                                 ) : (
                                     <div className="w-48 h-48 rounded-full bg-gray-700 flex items-center justify-center border-4 border-gray-600">
-                                        <span className="text-4xl font-bold">{getInitials(user?.name)}</span>
+                                        <span className="text-4xl font-bold">{getInitials(userData?.payload?.name)}</span>
                                     </div>
                                 )}
                                 <label className="absolute bottom-0 right-0 bg-gray-700 p-3 rounded-full cursor-pointer
@@ -125,19 +128,19 @@ function UserPage() {
                                     <div className="space-y-2">
                                         <label className="text-sm text-gray-400">Full Name</label>
                                         <div className="px-4 py-3 bg-gray-700 rounded-lg">
-                                            {user?.name || 'Not set'}
+                                            {userData?.payload?.name || 'Not set'}
                                         </div>
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-sm text-gray-400">Email Address</label>
                                         <div className="px-4 py-3 bg-gray-700 rounded-lg">
-                                            {user?.email || 'Not set'}
+                                            {userData?.payload?.email || 'Not set'}
                                         </div>
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-sm text-gray-400">Profession</label>
                                         <div className="px-4 py-3 bg-gray-700 rounded-lg">
-                                            {user?.profession || 'Not set'}
+                                            {userData?.payload?.profession || 'Not set'}
                                         </div>
                                     </div>
                                 </div>

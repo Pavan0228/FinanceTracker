@@ -24,7 +24,6 @@ router.post("/user/:id/monthly-limit", async (req, res) => {
 // GET request to fetch monthly limits for a user
 router.get("/user/:id/monthly-limit", async (req, res) => {
     const userId = req.params.id;
-    console.log(userId)
     try {
         // Call the service function to get monthly limits
         const result = await getMonthlyLimits(userId);

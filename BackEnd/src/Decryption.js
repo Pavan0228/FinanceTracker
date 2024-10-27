@@ -28,7 +28,6 @@ const encryptedText = 'Xl2yVWdGgAYiwuTcXXLJ/L4iU3nmR0GQ9uXUeOSJu5w=';  // Replac
 // Decrypt and print the result
 try {
     const decryptedText = decrypt(encryptedText);
-    console.log("Decrypted text:", decryptedText);
 } catch (error) {
     console.error("Decryption error:", error.message);
 }

@@ -22,7 +22,6 @@ router.post(
     upload.single("image"),
     async (req, res) => {
         try {
-            console.log(req.body)
             // Ensure user is authenticated and userId is available
             const {userId} = req.body; // Adjust according to your auth setup
 

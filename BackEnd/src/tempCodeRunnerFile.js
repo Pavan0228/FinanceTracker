@@ -14,7 +14,6 @@ function generateKey() {
 function decrypt(encryptedText) {
     const key = generateKey();
     const decipher = createDecipheriv('aes-128-ecb', key, null); // ECB mode, no IV
-    console.log(decipher)
     // console.log(decipher)
     decipher.setAutoPadding(true); // Ensure PKCS5/PKCS7 padding is handled
 
@@ -29,7 +28,6 @@ const encryptedText = 'ALwWQRYy4KzRnT3x7mxhYE+7Cf/edgBpTTMWJWfhLZTEyu4QlGxqN2PpG
 // Decrypt and print the result
 try {
     const decryptedText = decrypt(encryptedText);
-    console.log("Decrypted text:", decryptedText);
 } catch (error) {
     console.error("Decryption error:", error.message);
 }

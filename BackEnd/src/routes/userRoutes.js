@@ -24,7 +24,7 @@ router.get("/:id", async (req, res) => {
                 name: userData.name,
                 password: userData.password,
                 profession:userData.profession,
-                profile:userData.profile.profilePicUrl
+                profile:userData?.profile?.profilePicUrl || null,
             });
         } else {
             res.status(404).send({ message: "User not found" });

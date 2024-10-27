@@ -20,7 +20,6 @@ export const login = createAsyncThunk(
                 
                 idToken,
             });
-            console.log(`Logging in with URL: ${API_URL}/api/auth/login`);
             const { accessToken, uid } = response.data;
 
             localStorage.setItem("accessToken", accessToken);
@@ -28,7 +27,6 @@ export const login = createAsyncThunk(
 
             return { accessToken, uid };
         } catch (error) {
-            console.log("Login error", error);
             toast.error(error.response?.data?.message || "Login failed!");
             return rejectWithValue(
                 error.response?.data?.message || "Login failed!"
@@ -44,7 +42,6 @@ export const getUser = createAsyncThunk(
             const response = await axios.get(`${API_URL}/api/auth/${userId}`);
             return response.data;
         } catch (error) {
-            console.log("Get user error", error);
             return rejectWithValue(
                 error.response?.data?.message || "Get user failed!"
             );

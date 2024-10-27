@@ -34,7 +34,6 @@ export async function login(req, res) {
     try {
         // Verify the ID token sent from the client
         const decodedToken = await admin.auth().verifyIdToken(idToken);
-        console.log(decodedToken.uid)
         // The ID token is valid. You can get the user's Firebase UID
         const uid = decodedToken.uid;
 

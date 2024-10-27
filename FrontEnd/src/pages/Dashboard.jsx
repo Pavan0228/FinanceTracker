@@ -140,7 +140,6 @@ const FinanceDashboard = () => {
                 month: currentMonth,
                 year: currentYear,
             });
-            console.log('Monthly limit updated:', response.data.data.limit);
             setMonthlyLimit(response.data.data.limit);
             setShowLimitModal(false);
         } catch (error) {
