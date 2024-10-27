@@ -15,11 +15,11 @@ const HelpPage = () => {
     return (
         <div className="bg-gray-900 text-gray-300 min-h-screen py-8">
             <div className="container mx-auto px-4 max-w-4xl">
-                <h1 className="text-3xl font-bold mb-6 text-center text-emerald-400">pennyTracker Help & Information</h1>
+                <h1 className="text-3xl font-bold mb-6 text-center text-emerald-400">PennyTracker Help & Information</h1>
 
-                <HelpSection title="What is pennyTracker?" icon={Info}>
+                <HelpSection title="What is PennyTracker?" icon={Info}>
                     <p className="mb-4">
-                        pennyTracker is an innovative automatic finance tracking application designed to simplify your financial management.
+                        PennyTracker is an innovative automatic finance tracking application designed to simplify your financial management.
                         By securely analyzing your financial messages, it provides you with real-time insights into your spending habits and financial health.
                     </p>
                 </HelpSection>
@@ -34,7 +34,7 @@ const HelpPage = () => {
                 </HelpSection>
 
                 <HelpSection title="Security Measures" icon={Lock}>
-                    <p className="mb-4">Your privacy and data security are our top priorities. pennyTracker employs several measures to ensure your information remains safe:</p>
+                    <p className="mb-4">Your privacy and data security are our top priorities. PennyTracker employs several measures to ensure your information remains safe:</p>
                     <ul className="list-disc pl-6 space-y-2">
                         <li>AES Encryption: All sensitive data is encrypted using Advanced Encryption Standard (AES) algorithms.</li>
                         <li>Local Processing: Your financial data is processed locally on your device, minimizing data transmission risks.</li>
@@ -55,7 +55,7 @@ const HelpPage = () => {
                 </HelpSection>
 
                 <HelpSection title="Troubleshooting" icon={AlertTriangle}>
-                    <p className="mb-4">If you encounter any issues while using pennyTracker, try these steps:</p>
+                    <p className="mb-4">If you encounter any issues while using PennyTracker, try these steps:</p>
                     <ol className="list-decimal pl-6 space-y-2">
                         <li>Ensure your app is updated to the latest version.</li>
                         <li>Check your device settings to confirm the app has necessary permissions.</li>

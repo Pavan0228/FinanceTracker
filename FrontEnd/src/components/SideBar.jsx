@@ -74,7 +74,7 @@ const Logo = memo(({ isCollapsed, navigate }) => (
                     overflow-hidden whitespace-nowrap
                     ${isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"}`}
         >
-            pennyTracker
+            PennyTracker
         </h1>
     </div>
 ));
