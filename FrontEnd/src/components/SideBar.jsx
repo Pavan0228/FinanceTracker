@@ -8,10 +8,11 @@ import {
     Download,
     HelpCircle,
     ChevronLeft,
-    ChevronRight,
+    Users,
     X,
     Menu,
     PlusCircle,
+    LogOut,
 } from "lucide-react";
 
 import image from "../assets/CroppedImage.png";
@@ -85,10 +86,9 @@ const SidebarItem = memo(
         <li
             className={`flex items-center p-3 rounded-lg cursor-pointer
                 transition-all duration-300 ease-in-out transform
-                ${
-                    isActive
-                        ? "bg-gray-700 text-white shadow-lg translate-x-2"
-                        : "text-gray-400 hover:bg-gray-700/50 hover:text-white hover:translate-x-2"
+                ${isActive
+                    ? "bg-gray-700 text-white shadow-lg translate-x-2"
+                    : "text-gray-400 hover:bg-gray-700/50 hover:text-white hover:translate-x-2"
                 }
                 ${isCollapsed ? "justify-center" : ""}`}
             onClick={onClick}
@@ -122,6 +122,7 @@ const Sidebar = () => {
         { icon: PlusCircle, text: "Input Finance", path: "/input" },
         { icon: Download, text: "Download Data", path: "/download" },
         { icon: HelpCircle, text: "Help", path: "/help" },
+        { icon: Users, text: "About Us", path: "/aboutus" },
     ];
 
     useEffect(() => {
@@ -155,14 +156,19 @@ const Sidebar = () => {
         setIsMobileOpen(false);
     };
 
+    const handleLogout = () => {
+        localStorage.clear();
+        navigate("/");
+    };
+
     const MobileToggleButton = () => (
         <button
             onClick={() => setIsMobileOpen(true)}
-            className="lg:hidden fixed top-1 left-4 z-20 p-2 rounded-lg bg-gray-800-80 
+            className="lg:hidden fixed top-4 left-4 z-20 p-2 rounded-lg bg-gray-800 
                     hover:bg-gray-700 transition-all duration-300 ease-in-out transform 
-                    hover:scale-105 active:scale-95 shadow-lg border border-white-10"
+                    hover:scale-105 active:scale-95 shadow-lg border border-gray-700"
         >
-            <Menu className="w-4 h-4  text-white" />
+            <Menu className="w-4 h-4 text-white" />
         </button>
     );
 
@@ -182,7 +188,7 @@ const Sidebar = () => {
             <div
                 className={`fixed lg:static bg-gradient-to-b from-gray-900 to-gray-800 
                         text-white h-screen transition-all duration-300 ease-in-out 
-                        border-r border-gray-700/50 z-40
+                        border-r border-gray-700/50 z-40 flex flex-col
                         ${isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
                         ${isCollapsed ? "lg:w-20" : "lg:w-64"} w-[280px]`}
             >
@@ -208,49 +214,63 @@ const Sidebar = () => {
                     />
                 </button>
 
-                <div className="flex items-center p-4 border-b border-gray-700/50">
+                <div className="flex-shrink-0 p-4 border-b border-gray-700/50">
                     <Logo isCollapsed={isCollapsed} navigate={navigate} />
                 </div>
 
-                <nav className="flex-grow pt-4 overflow-hidden ">
-                    <ul className="space-y-2 px-3">
-                        {navigationItems.map((item) => (
-                            <SidebarItem
-                                key={item.path}
-                                icon={item.icon}
-                                text={item.text}
-                                path={item.path}
-                                isActive={location.pathname === item.path}
-                                onClick={() => handleNavigate(item.path)}
-                                isCollapsed={isCollapsed}
-                            />
-                        ))}
-                    </ul>
-                </nav>
-
-                {/* Horizontal line separator */}
-                <div className="px-3">
-                    <div className="h-px bg-gray-700/50 w-full my-2"></div>
+                {/* Scrollable navigation area */}
+                <div className="flex-grow overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800">
+                    <nav className="pt-4">
+                        <ul className="space-y-2 px-3">
+                            {navigationItems.map((item) => (
+                                <SidebarItem
+                                    key={item.path}
+                                    icon={item.icon}
+                                    text={item.text}
+                                    path={item.path}
+                                    isActive={location.pathname === item.path}
+                                    onClick={() => handleNavigate(item.path)}
+                                    isCollapsed={isCollapsed}
+                                />
+                            ))}
+                        </ul>
+                    </nav>
                 </div>
 
-                <div className="p-4 bottom-1 absolute">
-                    <Link to="/user">
-                        <div
-                            className={`flex items-center transition-all duration-300 ease-in-out ${isCollapsed ? "justify-center" : "space-x-3"}`}
-                        >
-                            <ProfileAvatar
-                                name={userData?.payload?.name || "User"}
-                                profile={userData?.payload?.profile}
-                            />
+                {/* Footer section with user profile and logout */}
+                <div className="flex-shrink-0 border-t border-gray-700/50 p-4">
+                    <div className="flex items-center justify-between">
+                        <Link to="/user" className="flex-grow">
                             <div
-                                className={`flex flex-col transition-all duration-300 ease-in-out overflow-hidden ${isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"}`}
+                                className={`flex items-center transition-all duration-300 ease-in-out ${isCollapsed ? "justify-center" : "space-x-3"
+                                    }`}
                             >
-                                <span className="text-lg capitalize font-medium text-gray-200 whitespace-nowrap">
-                                    {userData?.payload?.name || "User"}
-                                </span>
+                                <ProfileAvatar
+                                    name={userData?.payload?.name || "User"}
+                                    profile={userData?.payload?.profile}
+                                />
+                                <div
+                                    className={`flex flex-col transition-all duration-300 ease-in-out overflow-hidden ${isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
+                                        }`}
+                                >
+                                    <span className="text-lg capitalize font-medium text-gray-200 whitespace-nowrap">
+                                        {userData?.payload?.name || "User"}
+                                    </span>
+                                </div>
                             </div>
-                        </div>
-                    </Link>
+                        </Link>
+
+                        {/* Compact logout button */}
+                        <button
+                            onClick={handleLogout}
+                            className={`flex-shrink-0 p-2 rounded-lg text-gray-400 
+                                hover:bg-gray-700/50 hover:text-white transition-all duration-300 ease-in-out
+                                ${isCollapsed ? "ml-0" : "ml-2"}`}
+                            title="Logout"
+                        >
+                            <LogOut className="w-5 h-5" />
+                        </button>
+                    </div>
                 </div>
             </div>
         </>

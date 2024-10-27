@@ -11,6 +11,7 @@ import HelpPage from './pages/Help';
 import Yearly from './pages/Yearly';
 import InputPage from './pages/InputPage';
 import UserPage from './pages/UserPage';
+import AboutUsPage from './pages/AboutUs';
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
             <Route path="/input" element={<ProtectedRoute element={<InputPage />} />} />  
             <Route path="/user" element={<ProtectedRoute element={<UserPage />} />} />  
             <Route path="/Daily" element={<ProtectedRoute element={<TransactionTable />} />} />  
+            <Route path="/AboutUs" element={<ProtectedRoute element={<AboutUsPage />} />} />  
           </Routes>
         </div>
       </div>
