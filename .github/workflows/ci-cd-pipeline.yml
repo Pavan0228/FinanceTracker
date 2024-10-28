@@ -23,8 +23,9 @@ jobs:
       - name: Deploy to EC2
         run: |
           ssh -i "PennyWiseFinance.pem" -o StrictHostKeyChecking=no ubuntu@13.200.69.203 << 'EOF'
-            cd ~/FinanceTracker
-            git pull origin main
+            cd FinanceTracker/
+            git pull
+            cd Backend
             npm install
             pm2 restart 0
           EOF
