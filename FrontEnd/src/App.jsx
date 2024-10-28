@@ -38,7 +38,7 @@ function App() {
           <Routes>
             <Route path="/" element={null} />
             <Route path="/*" element={
-              <div className="sticky top-0 h-screen">
+              <div className="sticky z-50 top-0 h-screen">
                 <SideBar />
               </div>
             } />
