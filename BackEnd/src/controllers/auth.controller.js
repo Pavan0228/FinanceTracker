@@ -32,26 +32,23 @@ export async function login(req, res) {
     }
 
     try {
-        // Verify the ID token sent from the client
+        // Verify the ID token
         const decodedToken = await admin.auth().verifyIdToken(idToken);
-        // The ID token is valid. You can get the user's Firebase UID
         const uid = decodedToken.uid;
 
-        const userRecord = await admin.auth().getUser(uid); 
-
-        const { accessToken } = await generateAccessToken(userRecord.uid);
+        const userRecord = await admin.auth().getUser(uid);
+        const accessToken = await generateAccessToken(uid); // assuming generateAccessToken returns an accessToken directly
         
         // Respond with user data
         return res.status(200).json({
             message: "User logged in successfully",
             uid: userRecord.uid,
-            email: userRecord.email,
-            displayName: userRecord.displayName,
+            email: userRecord.email || "No email",
+            displayName: userRecord.displayName || "User",
             accessToken
         });
     } catch (error) {
-        console.error("Error verifying ID token:", error);
+        console.error("Error verifying ID token:", error.message);
         return res.status(401).json({ message: "Invalid or expired ID token" });
     }
 }
-
