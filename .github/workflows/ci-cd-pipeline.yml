@@ -23,9 +23,7 @@ jobs:
           chmod 600 PennyWiseFinance.pem
           ssh -i "PennyWiseFinance.pem" -o StrictHostKeyChecking=no ubuntu@13.200.69.203 << 'EOF'
             cd ~/FinanceTracker
-            # Set the remote URL to use SSH
-            git remote set-url origin git@github.com:Sridhar1030/FinanceTracker.git
-            git pull
+            git pull git@github.com:Sridhar1030/FinanceTracker.git
             cd BackEnd
             npm install
             pm2 restart all
