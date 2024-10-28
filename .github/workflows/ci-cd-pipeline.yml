@@ -25,7 +25,7 @@ jobs:
           ssh -i "PennyWiseFinance.pem" -o StrictHostKeyChecking=no ubuntu@13.200.69.203 << 'EOF'
             cd FinanceTracker/
             git pull
-            cd Backend
+            cd BackEnd/
             npm install
             pm2 restart 0
           EOF

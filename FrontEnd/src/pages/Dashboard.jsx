@@ -341,7 +341,7 @@ const FinanceDashboard = () => {
             <div className="flex flex-col lg:flex-row lg:justify-between items-center justify-center lg:items-center gap-4 mb-6">
                 {/* Logo */}
                 <div className="flex items-center">
-                    <h1 className="text-2xl lg:text-3xl font-bold">Penny</h1>
+                    <h1 className="text-2xl lg:text-3xl font-bold">Penn</h1>
                 </div>
 
                 {/* Date and Limit Controls */}
