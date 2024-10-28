@@ -1,2 +1,2 @@
 "# FinanceTracker" 
-![CI/CD Pipeline](https://github.com/your-username/your-repo/actions/workflows/ci-cd-pipeline.yml/badge.svg)
+![CI/CD Pipeline](https://github.com/Sridhar1030/FinanceTracker/actions/workflows/ci-cd-pipeline.yml/badge.svg)
