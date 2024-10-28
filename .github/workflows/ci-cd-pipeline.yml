@@ -17,29 +17,16 @@ jobs:
         with:
           node-version: '20'
 
+      
+
       - name: Deploy to EC2
         run: |
-          # Create the SSH key file from the GitHub secret
           echo "${{ secrets.EC2_SSH_KEY }}" > PennyWiseFinance.pem
           chmod 600 PennyWiseFinance.pem
-          
-          # SSH into the EC2 instance and deploy the application
           ssh -i "PennyWiseFinance.pem" -o StrictHostKeyChecking=no ubuntu@13.200.69.203 << 'EOF'
-            # Navigate to the application directory
             cd ~/FinanceTracker
-            
-            # Pull the latest code from the repository
             git pull
-            
-            # Change ownership of all files to the ubuntu user
-            sudo chown -R ubuntu:ubuntu .
-            
-            # Navigate to the backend directory
             cd BackEnd
-            
-            # Install any new dependencies
             npm install
-            
-            # Restart the PM2 processes
             pm2 restart all
           EOF
