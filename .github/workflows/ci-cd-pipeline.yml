@@ -21,13 +21,9 @@ jobs:
         run: npm install
 
       - name: Deploy to EC2
-        env:
-          HOST: ${{ secrets.EC2_HOST }}
-          USERNAME: ubuntu
-          SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
         run: |
-          ssh -i "PennyWiseFinance.pem" -o StrictHostKeyChecking=no $USERNAME@$HOST << 'EOF'
-            cd FinanceTracker
+          ssh -i "PennyWiseFinance.pem" -o StrictHostKeyChecking=no ubuntu@13.200.69.203 << 'EOF'
+            cd ~/FinanceTracker
             git pull origin main
             npm install
             pm2 restart 0
