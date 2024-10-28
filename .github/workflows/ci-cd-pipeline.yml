@@ -1,34 +1,34 @@
-# .github/workflows/deploy.yml
 name: Deploy to EC2
 
 on:
   push:
     branches:
-      - main  # Change to your default branch if it's different
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-
-      - name: Copy files to EC2
-        uses: appleboy/scp-action@v0.1.1
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu  
-          key: ${{ secrets.EC2_SSH_KEY }}
-          source: "."
-          target: "/home/ubuntu/FinanceTracker"  # Change to your project path on EC2
+          node-version: '20'
 
-      - name: SSH Command
-        uses: appleboy/ssh-action@v0.1.1
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu  
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            cd ~/FinanceTracker
-            ./deploy.sh
+      - name: Install dependencies
+        run: npm install
+
+      - name: Deploy to EC2
+        env:
+          HOST: ${{ secrets.EC2_HOST }}
+          USERNAME: ubuntu
+          SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+        run: |
+          ssh -i "PennyWiseFinance.pem" -o StrictHostKeyChecking=no $USERNAME@$HOST << 'EOF'
+            cd FinanceTracker
+            git pull origin main
+            npm install
+            pm2 restart 0
+          EOF
