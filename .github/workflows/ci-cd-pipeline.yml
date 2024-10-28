@@ -21,7 +21,7 @@ jobs:
 
       - name: Deploy to EC2
         run: |
-          echo "${{ secrets.EC2_SSH_KEY }}" | PennyWiseFinance.pem
+          echo "${{ secrets.EC2_SSH_KEY }}" > PennyWiseFinance.pem
           chmod 600 PennyWiseFinance.pem
           ssh -i "PennyWiseFinance.pem" -o StrictHostKeyChecking=no ubuntu@13.200.69.203 << 'EOF'
             cd ~/FinanceTracker
