@@ -17,6 +17,8 @@ jobs:
         with:
           node-version: '20'
 
+      
+
       - name: Deploy to EC2
         run: |
           echo "${{ secrets.EC2_SSH_KEY }}" > PennyWiseFinance.pem
@@ -24,10 +26,7 @@ jobs:
           ssh -i "PennyWiseFinance.pem" -o StrictHostKeyChecking=no ubuntu@13.200.69.203 << 'EOF'
             cd ~/FinanceTracker
             git pull
-            cd FrontEnd
-            npm install
-            npm run build   
-            cd ../BackEnd
+            cd Backend
             npm install
             pm2 restart 0
           EOF
