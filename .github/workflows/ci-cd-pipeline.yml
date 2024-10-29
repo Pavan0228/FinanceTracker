@@ -17,7 +17,7 @@ jobs:
         with:
           node-version: '20'
 
-            - name: Deploy to EC2
+      - name: Deploy to EC2
         run: |
           echo "${{ secrets.EC2_SSH_KEY }}" > PennyWise.pem
           chmod 600 PennyWise.pem
@@ -32,7 +32,7 @@ jobs:
             
             # Install PM2 if not installed
             if ! command -v pm2 &> /dev/null; then
-              npm install -g pm2
+              sudo npm install -g pm2  # Make sure to use sudo here for global install
             fi
             
             # Change to the project directory
@@ -50,4 +50,3 @@ jobs:
             # Restart the PM2 process
             pm2 restart all
           EOF
-
