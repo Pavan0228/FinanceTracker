@@ -53,6 +53,16 @@ const Yearly = () => {
             let comparison = 0;
             if (sortField === "amount") {
                 comparison = parseFloat(a.amount) - parseFloat(b.amount);
+            } else if (sortField === "date") {
+                const [aDatePart, aTimePart] = a.date.split(' ');
+                const [aDay, aMonth, aYear] = aDatePart.split('/');
+                const aDate = new Date(`${aYear}-${aMonth}-${aDay}T${aTimePart}`);
+    
+                const [bDatePart, bTimePart] = b.date.split(' ');
+                const [bDay, bMonth, bYear] = bDatePart.split('/');
+                const bDate = new Date(`${bYear}-${bMonth}-${bDay}T${bTimePart}`);
+    
+                comparison = aDate.getMonth() - bDate.getMonth();
             } else {
                 comparison = a[sortField].localeCompare(b[sortField]);
             }
