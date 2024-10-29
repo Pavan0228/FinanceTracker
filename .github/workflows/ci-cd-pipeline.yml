@@ -49,4 +49,7 @@ jobs:
             
             # Restart the PM2 process
             pm2 restart all
+
+            sudo systemctl restart nginx
+            
           EOF
