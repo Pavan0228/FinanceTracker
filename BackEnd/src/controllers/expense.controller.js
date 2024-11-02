@@ -1,3 +1,4 @@
+import client from "../../client.js";
 import {
     getUserDataById,
     getUserMessagesById,
@@ -7,12 +8,42 @@ import {
     getUserYearlyMessagesById,
 } from "../services/userService.js";
 
+const redisHelper = {
+    async get(key) {
+        try {
+            const data = await client.get(key);
+            return data ? JSON.parse(data) : null;
+        } catch (error) {
+            console.error('Redis GET Error:', error);
+            return null;
+        }
+    },
+    async set(key, value, expires) {
+        try {
+            await client.set(key, JSON.stringify(value), {
+                EX: expires // expiration in seconds
+            });
+        } catch (error) {
+            console.error('Redis SET Error:', error);
+        }
+    }
+};
+
 export const getUserMessages = async (req, res) => {
     try {
         const userId = req.params.id;
-        const decryptedMessages = await getUserMessagesById(userId);
+        const cachedMessages = await redisHelper.get(`messages:${userId}`);
+        if (cachedMessages) {
+            return res.status(200).send({
+                message: "User messages retrieved successfully",
+                data: cachedMessages,
+            });
+        }
 
+        const decryptedMessages = await getUserMessagesById(userId);
+        
         if (decryptedMessages.length > 0) {
+            await redisHelper.set(`messages:${userId}`, decryptedMessages, 60);
             res.status(200).send({
                 message: "User messages retrieved successfully",
                 data: decryptedMessages,
@@ -31,12 +62,21 @@ export const getUserMessages = async (req, res) => {
 export const getTotalDebitCredit = async (req, res) => {
     const userId = req.params.id;
     try {
+        const cachedTotals = await redisHelper.get(`totals:${userId}`);
+        if (cachedTotals) {
+            return res.status(200).send({
+                message: "Total debit and credit amounts retrieved successfully",
+                totalDebit: cachedTotals.totalDebit,
+                totalCredit: cachedTotals.totalCredit,
+            });
+        }
+
         const messages = await getUserMessagesById(userId);
         if (messages) {
             const totals = calculateTotalDebitsAndCredits(messages);
+            await redisHelper.set(`totals:${userId}`, totals, 60);
             res.status(200).send({
-                message:
-                    "Total debit and credit amounts retrieved successfully",
+                message: "Total debit and credit amounts retrieved successfully",
                 totalDebit: totals.totalDebit,
                 totalCredit: totals.totalCredit,
             });
@@ -70,9 +110,20 @@ export const getMonthlyDebitCredit = async (req, res) => {
             });
         }
 
+        const cacheKey = `monthly:${userId}:${monthNumber}:${year}`;
+        const cachedData = await redisHelper.get(cacheKey);
+        if (cachedData) {
+            return res.status(200).json({
+                message: "Monthly debits and credits calculated successfully",
+                data: cachedData,
+            });
+        }
+
         const monthYear = `${monthNumber.toString().padStart(2, "0")}${year}`;
         const messages = await getUserMonthlyMessagesById(userId, monthYear);
         const monthlyTotals = monthlyDebitCredit(messages, monthNumber);
+
+        await redisHelper.set(cacheKey, monthlyTotals, 60);
 
         res.status(200).json({
             message: "Monthly debits and credits calculated successfully",
@@ -89,10 +140,22 @@ export const getMonthlyDebitCredit = async (req, res) => {
 export const getMonthlyMessages = async (req, res) => {
     const { id, month, year } = req.params;
     const monthYear = `${month.toString().padStart(2, "0")}${year}`;
+    
     try {
+        const cacheKey = `monthlyMessages:${id}:${monthYear}`;
+        const cachedMessages = await redisHelper.get(cacheKey);
+        if (cachedMessages) {
+            return res.status(200).json({
+                message: "daily finance retrieved",
+                monthlyMessages: cachedMessages,
+            });
+        }
+
         const monthlyMessages = await getUserMonthlyMessagesById(id, monthYear);
+        await redisHelper.set(cacheKey, monthlyMessages, 60);
+
         res.status(200).json({
-            message:"daily finance retrived ",
+            message:"daily finance retrieved ",
             monthlyMessages});
     } catch (error) {
         console.error("Error in getMonthlyMessages:", error);
@@ -105,9 +168,19 @@ export const getMonthlyMessages = async (req, res) => {
 export const getYearlyMessages = async (req, res) => {
     try {
         const { id, year } = req.params;
+        const cacheKey = `yearlyMessages:${id}:${year}`;
+        const cachedMessages = await redisHelper.get(cacheKey);
+        if (cachedMessages) {
+            return res.status(200).send({
+                message: "User messages retrieved successfully",
+                data: cachedMessages,
+            });
+        }
+
         const decryptedMessages = await getUserYearlyMessagesById(id, year);
 
         if (decryptedMessages.length > 0) {
+            await redisHelper.set(cacheKey, decryptedMessages, 60);
             res.status(200).send({
                 message: "User messages retrieved successfully",
                 data: decryptedMessages,
@@ -127,6 +200,12 @@ export const getAllMonthSummary = async (req, res) => {
     const { userId, year } = req.params;
 
     try {
+        const cacheKey = `monthSummary:${userId}:${year}`;
+        const cachedSummary = await redisHelper.get(cacheKey);
+        if (cachedSummary) {
+            return res.status(200).json(cachedSummary);
+        }
+
         const yearlyMessages = await getUserYearlyMessagesById(userId, year);
         const monthlyTotals = {};
 
@@ -156,6 +235,7 @@ export const getAllMonthSummary = async (req, res) => {
                     summary.totalCredit !== 0 || summary.totalDebit !== 0
             );
 
+        await redisHelper.set(cacheKey, financeSummary, 60);
         res.status(200).json(financeSummary);
     } catch (error) {
         console.error("Error in getAllMonthSummary:", error);
