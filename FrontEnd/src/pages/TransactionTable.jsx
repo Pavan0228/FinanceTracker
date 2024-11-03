@@ -18,9 +18,13 @@ const TransactionTable = () => {
     
     const [selectedDate, setSelectedDate] = useState(() => {
 
+        if(localStorage.getItem('selectedDate')) {
+            return localStorage.getItem('selectedDate');
+        }
         if (location?.state?.date) {
             return location.state.date;
         }
+
         const currentDate = new Date();
         return `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
     });
@@ -60,6 +64,7 @@ const TransactionTable = () => {
 
     const handleDateChange = (event) => {
         setSelectedDate(event.target.value);
+        localStorage.setItem('selectedDate', event.target.value);
     };
 
     // Memoized filtered and sorted transactions
