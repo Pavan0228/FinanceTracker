@@ -39,7 +39,7 @@ router.get("/:id", async (req, res) => {
                 cacheKey,
                 JSON.stringify(userData),
                 {
-                    EX: 3600, // Cache expires in 1 hour (3600 seconds)
+                    EX: 60,
                 }
             );
 
