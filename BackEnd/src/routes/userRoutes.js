@@ -23,7 +23,7 @@ router.get("/:id", async (req, res) => {
         if (cachedUserData) {
             return res.status(200).send({
                 message: "User data retrieved from cache",
-                data: JSON.parse(cachedUserData), // Parse the cached data
+                data: cachedUserData, // Parse the cached data
             });
         }
 
@@ -31,7 +31,7 @@ router.get("/:id", async (req, res) => {
         const userData = await getUserDataById(userId);
         if (userData) {
             // Cache the user data in Redis for future requests
-            await client.set(cacheKey, JSON.stringify(userData), {
+            await client.set(cacheKey, userData, {
                 EX: 3600, // Cache expires in 1 hour (3600 seconds)
             });
             res.status(200).send({
