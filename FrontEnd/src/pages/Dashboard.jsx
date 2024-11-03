@@ -58,6 +58,11 @@ const FinanceDashboard = () => {
     const [showLogout, setShowLogout] = useState(false);
     const [dailyDebitAndCredit, setDailyDebitAndCredit] = useState([]);
     const [selectedDate, setSelectedDate] = useState(() => {
+
+        if(localStorage.getItem('selectedDate')) {
+            return localStorage.getItem('selectedDate');
+        }
+
         const currentDate = new Date();
         return `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
     });
@@ -207,6 +212,7 @@ const FinanceDashboard = () => {
 
     const handleDateChange = (event) => {
         setSelectedDate(event.target.value);
+        localStorage.setItem('selectedDate', event.target.value);
     };
 
     const generateDateOptions = () => {
