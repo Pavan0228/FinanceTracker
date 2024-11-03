@@ -30,12 +30,13 @@ Follow these instructions to get the project up and running on your local machin
 - **Database**: A suitable database like MongoDB for storing transaction data.
 - **Redis**: Used for checking Firebase data.
 - **Scraping Library**: Set up the necessary tools for message scraping.
+- **AWS SDK**: For interacting with AWS services like S3.
 
 ### Installation
 
 1. Clone the repository:
    ```bash
-   git clone [https://github.com/Sridhar1030/FinanceTracker.git]
+   git clone https://github.com/Sridhar1030/FinanceTracker.git
 
 2. Navigate to the project directory:
    ```bash
@@ -80,6 +81,12 @@ npm start
 - **Message Scraping**: Library/tool for scraping messages
 - **Caching**: Redis for checking Firebase data
 - **Data Visualization**: Chart.js or similar library for graphs and analytics
+
+## AWS Services Used
+
+- **AWS EC2**: Deployed the FinanceTracker application on Amazon EC2 for scalable and flexible hosting.
+- **AWS S3**: Used Amazon S3 for storing user profile photos securely, enabling easy access and management of user data.
+- **AWS SDK**: Integrated the AWS SDK to facilitate interactions with AWS services for file uploads and data retrieval.
 
 ## Project Structure
 
