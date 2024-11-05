@@ -348,7 +348,7 @@ const FinanceDashboard = () => {
                 {/* Logo */}
                 <div className="flex items-center">
                     <h1 className="text-2xl lg:text-3xl font-bold">
-                    PennyTracker</h1>
+                    PennyWise</h1>
                 </div>
 
                 {/* Date and Limit Controls */}
