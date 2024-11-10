@@ -390,7 +390,7 @@ const FinanceDashboard = () => {
                         />
                         {showText && (
                             <div className="absolute right-0 mt-2 py-1 px-2 bg-gray-800 text-xs rounded shadow-lg z-10">
-                                Download as Excel
+                                Download Excel
                             </div>
                         )}
                     </div>
