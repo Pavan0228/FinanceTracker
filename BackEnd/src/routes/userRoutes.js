@@ -1,8 +1,6 @@
 import express from "express";
 import {
     getUserDataById,
-    getUserMessagesById,
-    calculateTotalDebitsAndCredits,
 } from "../services/userService.js";
 import { login } from "../controllers/auth.controller.js";
 import client from "../../client.js";
@@ -11,7 +9,7 @@ const router = express.Router();
 
 router.route("/login").post(login);
 
-// Route to get user data by ID with caching
+// Route to get user data by ID with caching, but excluding profile image
 router.get("/:id", async (req, res) => {
     const userId = req.params.id;
     const cacheKey = `UserData:${userId}`; // Define a cache key based on user ID
@@ -27,17 +25,18 @@ router.get("/:id", async (req, res) => {
                 name: userData.name,
                 password: userData.password,
                 profession: userData.profession,
-                profile: userData?.profile?.profilePicUrl || null,
+                profile: userData?.profile?.profilePicUrl || null, // Don't cache the profile image
             });
         }
 
         // If not in cache, fetch from database
         const userData = await getUserDataById(userId);
         if (userData) {
-            // Cache the user data in Redis for future requests
+            // Cache the user data in Redis for future requests (excluding the profile image)
+            const { profilePicUrl, ...userDataWithoutProfile } = userData;
             await client.set(
                 cacheKey,
-                JSON.stringify(userData),
+                JSON.stringify(userDataWithoutProfile),
                 {
                     EX: 3600, // Cache expires in 1 hour (3600 seconds)
                 }
@@ -49,7 +48,7 @@ router.get("/:id", async (req, res) => {
                 name: userData.name,
                 password: userData.password,
                 profession: userData.profession,
-                profile: userData?.profile?.profilePicUrl || null,
+                profile: userData?.profile?.profilePicUrl || null, // Fetch profile image from DB each time
             });
         } else {
             res.status(404).send({ message: "User not found" });
