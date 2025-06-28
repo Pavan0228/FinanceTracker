@@ -149,13 +149,13 @@ const TransactionTable = () => {
                 </div>
                 
                 <div className="flex flex-wrap gap-2">
-                    {["all", "Credited", "Debited"].map(type => (
+                    {["all", "CREDIT", "Debited"].map(type => (
                         <button
                             key={type}
                             onClick={() => setFilter(type)}
                             className={`px-4 py-2 rounded-md ${
                                 filter === type
-                                    ? (type === "Credited" 
+                                    ? (type === "CREDIT" 
                                         ? "bg-green-600" 
                                         : type === "Debited" 
                                             ? "bg-red-600" 
@@ -226,7 +226,7 @@ const TransactionTable = () => {
                                     </td>
                                     <td
                                         className={`px-4 py-3 font-medium ${
-                                            transaction.type === "Credited"
+                                            transaction.type === "CREDIT"
                                                 ? "text-green-400"
                                                 : "text-red-400"
                                         }`}
@@ -236,7 +236,7 @@ const TransactionTable = () => {
                                     <td className="px-4 py-3">
                                         <span
                                             className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                                transaction.type === "Credited"
+                                                transaction.type === "CREDIT"
                                                     ? "bg-green-900 text-green-300"
                                                     : "bg-red-900 text-red-300"
                                             }`}

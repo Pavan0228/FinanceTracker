@@ -114,7 +114,7 @@ const Yearly = () => {
                             key={type}
                             onClick={() => setFilter(type)}
                             className={`px-4 py-2 rounded-md ${filter === type
-                                ? (type === "Credited" ? "bg-green-600" : "bg-red-600")
+                                ? (type === "Debited" ? "bg-red-600" : "bg-green-600")
                                 : "bg-gray-700 text-gray-300 hover:bg-gray-600"
                                 }`}
                         >
@@ -157,11 +157,11 @@ const Yearly = () => {
                                     <td className="px-4 py-3">
                                         {formatDate(transaction.date)}
                                     </td>
-                                    <td className={`px-4 py-3 font-medium ${transaction.type === "Credited" ? "text-green-400" : "text-red-400"}`}>
+                                    <td className={`px-4 py-3 font-medium ${transaction.type === "Debited" ? "text-red-400" : "text-green-400"}`}>
                                         {formatAmount(transaction.amount)}
                                     </td>
                                     <td className="px-4 py-3">
-                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${transaction.type === "Credited" ? "bg-green-900 text-green-300" : "bg-red-900 text-red-300"}`}>
+                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${transaction.type === "Debited" ? "bg-red-900 text-red-300" : "bg-green-900 text-green-300"}`}>
                                             {transaction.type}
                                         </span>
                                     </td>
