@@ -107,7 +107,7 @@ const FinanceDashboard = () => {
                 const currentYear = parseInt(year);
 
                 const [monthlyResponse, totalResponse, monthlyDebitResponse, dailyResponse] = await Promise.all([
-                    dispatch(fetchMonthlySummary(userId)).unwrap(),
+                    dispatch(fetchMonthlySummary({userId, currentYear})).unwrap(),
                     dispatch(fetchTotalAmounts(userId)).unwrap(),
                     dispatch(fetchMonthlyDebitCredit({ userId, currentMonth, currentYear })).unwrap(),
                     dispatch(fetchDailyTransactions({ userId, currentMonth, currentYear })).unwrap(),
@@ -125,10 +125,10 @@ const FinanceDashboard = () => {
                 const dailyTransactions = dailyResponse.monthlyMessages;
                 setDailyDebitAndCredit(dailyTransactions);
 
-                const debitTransactions = processTransactions(dailyTransactions, "Debited");
+                const debitTransactions = processTransactions(dailyTransactions, "Debited", "DEBIT");
                 setDailyDebit(debitTransactions);
 
-                const creditTransactions = processTransactions(dailyTransactions, "Credited");
+                const creditTransactions = processTransactions(dailyTransactions, "Credited", "CREDIT");
                 setDailyCredit(creditTransactions);
 
             } catch (error) {
@@ -246,9 +246,9 @@ const FinanceDashboard = () => {
         }).format(value);
     };
 
-    const processTransactions = (transactions, type) => {
+    const processTransactions = (transactions, type1, type2) => {
         const filteredTransactions = transactions
-            .filter(transaction => transaction.type === type)
+            .filter(transaction => transaction.type === type1 || transaction.type === type2)
             .map(transaction => {
                 const [datePart, timePart] = transaction.date.split(' ');
                 const [day, month, year] = datePart.split('/');
@@ -303,9 +303,9 @@ const FinanceDashboard = () => {
         let CreditedTotal = 0;
         let DebitedTotal = 0;
         dailyDebitAndCredit.forEach((message) => {
-            if (message.type === "Credited") {
+            if (message.type === "Credited" || message.type === "CREDIT") {
                 CreditedTotal += parseFloat(message.amount.replace(/,/g, ''))
-            } else if (message.type === "Debited") {
+            } else if (message.type === "Debited" || message.type === "DEBIT") {
                 DebitedTotal += parseFloat(parseFloat(message.amount.replace(/,/g, '')).toFixed(2));
             }
         });
