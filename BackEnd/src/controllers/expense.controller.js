@@ -217,9 +217,9 @@ export const getAllMonthSummary = async (req, res) => {
                 monthlyTotals[month] = { totalCredit: 0, totalDebit: 0 };
             }
 
-            if (msg.type === "Debited") {
+            if (msg.type === "Debited" || msg.type == "DEBIT") {
                 monthlyTotals[month].totalDebit += parseFloat(msg.amount);
-            } else if (msg.type === "Credited") {
+            } else {
                 monthlyTotals[month].totalCredit += parseFloat(msg.amount);
             }
         });

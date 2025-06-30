@@ -119,9 +119,9 @@ export const calculateTotalDebitsAndCredits = (messages) => {
             // Iterate over the messages array
             const amount = parseFloat(message.amount.replace(/,/g, ""));
 
-            if (message.type === "Debited") {
+            if (message.type === "Debited" || message.type === "DEBIT") {
                 totalDebit += amount || 0; // Add amount if it's a debit
-            } else if (message.type === "Credited") {
+            } else{
                 totalCredit += amount || 0; // Add amount if it's a credit
             }
         }
