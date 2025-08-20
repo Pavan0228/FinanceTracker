@@ -20,8 +20,8 @@ import {
 
 const Login = () => {
     const [formData, setFormData] = useState({
-        email: "sridhar@gmail.com",
-        password: "sridhar1090",
+        email: "",
+        password: "",
     });
 
     const dispatch = useDispatch();
@@ -32,7 +32,13 @@ const Login = () => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
     };
-    
+
+    const fillDemoCredentials = () => {
+        setFormData({
+            email: "sridhar@gmail.com",
+            password: "sridhar1090",
+        });
+    };
 
     const firebaseConfig = {
         apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -72,7 +78,6 @@ const Login = () => {
                 setIsLoading(false);
                 navigate("/dashboard");
             }, 2000); // Change to your dashboard route
-
         } catch (error) {
             console.error("Login failed:", error);
             const errorMessage =
@@ -93,7 +98,7 @@ const Login = () => {
     );
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 flex items-center justify-center p-4">
+        <div className="min-h-screen h-[100vh] bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 flex items-center justify-center p-4">
             <div className="relative w-full max-w-md">
                 {/* Animated floating messages using Tailwind's built-in animations */}
                 <FloatingMessage
@@ -231,6 +236,21 @@ const Login = () => {
                         </div>
                     </form>
 
+                    {/* Demo credentials section */}
+                    <div className="mb-6 mt-6 p-4 bg-zinc-700/30 rounded-lg border border-zinc-600">
+                        <div className="flex justify-between items-center mb-2">
+                            <p className="text-zinc-300 text-sm font-medium">
+                                Demo Credentials:
+                            </p>
+                            <button
+                                type="button"
+                                onClick={fillDemoCredentials}
+                                className="px-3 py-1 text-xs bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors"
+                            >
+                                Fill Demo Login
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
             <ToastContainer />
