@@ -20,8 +20,8 @@ import {
 
 const Login = () => {
     const [formData, setFormData] = useState({
-        email: "",
-        password: "",
+        email: "sridhar@gmail.com",
+        password: "sridhar1090",
     });
 
     const dispatch = useDispatch();
