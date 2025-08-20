@@ -237,7 +237,7 @@ const Login = () => {
                     </form>
 
                     {/* Demo credentials section */}
-                    <div className="mb-6 mt-6 p-4 bg-zinc-700/30 rounded-lg border border-zinc-600">
+                    <div className="mb-6 p-4 bg-zinc-700/30 rounded-lg border border-zinc-600">
                         <div className="flex justify-between items-center mb-2">
                             <p className="text-zinc-300 text-sm font-medium">
                                 Demo Credentials:
@@ -249,6 +249,14 @@ const Login = () => {
                             >
                                 Fill Demo Login
                             </button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-xs text-zinc-400">
+                            <span>Email:</span>
+                            <span className="text-blue-400">
+                                sridhar@gmail.com
+                            </span>
+                            <span>Password:</span>
+                            <span className="text-blue-400">sridhar1090</span>
                         </div>
                     </div>
                 </div>
